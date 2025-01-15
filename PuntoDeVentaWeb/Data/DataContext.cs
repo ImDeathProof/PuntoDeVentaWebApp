@@ -18,8 +18,11 @@ namespace PuntoDeVentaWeb.Data
         public DbSet<Models.PaymentMethod> PaymentMethods { get; set; }
         public DbSet<Models.Product> Products { get; set; }
         public DbSet<Models.Purchase> Purchases { get; set; }
+        public DbSet<Models.PurchaseDetail> PurchaseDetails { get; set; }
         public DbSet<Models.Sale> Sales { get; set; }
+        public DbSet<Models.SaleDetail> SaleDetails { get; set; }
         public DbSet<Models.Supplier> Suppliers { get; set; }
         public DbSet<Models.User> Users { get; set; }
+        public DbSet<Models.UserRole> UserRoles { get; set; }
     }
 }

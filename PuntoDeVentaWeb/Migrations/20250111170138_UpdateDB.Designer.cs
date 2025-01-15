@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PuntoDeVentaWeb.Data;
 
@@ -11,9 +12,11 @@ using PuntoDeVentaWeb.Data;
 namespace PuntoDeVentaWeb.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250111170138_UpdateDB")]
+    partial class UpdateDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -239,7 +242,7 @@ namespace PuntoDeVentaWeb.Migrations
 
                     b.HasIndex("PurchaseId");
 
-                    b.ToTable("PurchaseDetails");
+                    b.ToTable("PurchaseDetail");
                 });
 
             modelBuilder.Entity("PuntoDeVentaWeb.Models.Sale", b =>
@@ -289,7 +292,7 @@ namespace PuntoDeVentaWeb.Migrations
 
                     b.HasIndex("SaleId");
 
-                    b.ToTable("SaleDetails");
+                    b.ToTable("SaleDetail");
                 });
 
             modelBuilder.Entity("PuntoDeVentaWeb.Models.Supplier", b =>
@@ -369,7 +372,7 @@ namespace PuntoDeVentaWeb.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("UserRole");
                 });
 
             modelBuilder.Entity("PuntoDeVentaWeb.Models.Payment", b =>
