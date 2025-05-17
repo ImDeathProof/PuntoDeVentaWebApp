@@ -1,0 +1,148 @@
+@model PurchaseViewModel
+
+<form asp-action="Create" method="post">
+    <!-- Datos de la compra -->
+    <div class="form-group">
+        <div>
+            <label asp-for="Purchase.Date"></label>
+            <input asp-for="Purchase.Date" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Purchase.User"></label>
+            <select asp-for="Purchase.UserId" class="form-control" asp-items="ViewBag.Users"></select>
+        </div>
+        <div>
+            <label asp-for="Purchase.Supplier"></label>
+            <select asp-for="Purchase.SupplierId" class="form-control" asp-items="ViewBag.Suppliers"></select>
+        </div>
+        <div>
+            <label asp-for="Purchase.PaymentMethod"></label>
+            <select asp-for="Purchase.PaymentMethodId" class="form-control" asp-items="ViewBag.PaymentMethods"></select>
+        </div>
+    </div>
+    
+
+    <!-- Tabla de detalles (PurchaseDetails) -->
+    <table class="table" id="detailsTable">
+        <thead>
+            <tr>
+                <th>N°</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.PurchaseDetails.Count; i++)
+            {
+                <tr>
+                    <td>@i</td>
+                    <td><select asp-for="PurchaseDetails[i].ProductId" asp-items="ViewBag.Products" class="form-control" onchange="LoadPrice(this)"></select></td>
+                    <td><input asp-for="PurchaseDetails[i].Quantity" class="form-control quantity-input" onchange="CalculateTotal(this)"/></td>
+                    <td><input class="form-control price-input" readonly/></td>
+                    <td><button type="button" class="btn btn-danger" onclick="removeDetail(this)">Eliminar</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <input asp-for="Purchase.Total" class="form-control" id="total-input" value="0" readonly />
+
+    <button type="button" class="btn btn-success" onclick="addDetail()">+ Agregar Detalle</button>
+    <button type="submit" class="btn btn-primary">Guardar Compra</button>
+</form>
+
+
+<script>
+    // Agregar nueva fila
+    function addDetail() {
+        const table = document.getElementById("detailsTable").getElementsByTagName('tbody')[0];
+        const newRow = table.insertRow();
+        const index = table.rows.length - 1;
+        newRow.innerHTML = `
+                <td>${index}</td>
+                <td>
+                    <select name="PurchaseDetails[${index}].ProductId" 
+                            class="form-control product-select"
+                            onchange="LoadPrice(this)">
+                        @if (ViewBag.Products != null)
+                        {
+                            foreach (var product in ViewBag.Products as SelectList)
+                            {
+                                <option value="@product.Value">@product.Text</option>
+                            }
+                        }
+                    </select>
+                </td>
+                <td><input name="PurchaseDetails[${index}].Quantity" class="form-control" onchange="CalculateTotal(this)" /></td>
+                <td><input name="PurchaseDetails[${index}].Price" class="form-control price-input" readonly /></td>
+                <td><button type="button" class="btn btn-danger" onclick="removeDetail(this)">Eliminar</button></td>
+            `;
+    }
+
+    // Eliminar fila
+    function removeDetail(button) {
+        const row = button.closest('tr');
+        row.remove();
+    }
+    function loadProduct(selectElement) {
+        // Obtener la opción seleccionada
+        var selectedOption = selectElement.options[selectElement.selectedIndex];
+        console.log(selectedOption.outerHTML);
+        // Obtener el ID y el precio desde los atributos data
+        var productId = selectedOption.getAttribute("data-id");
+        var productPrice = selectedOption.getAttribute("data-price");
+
+        // Obtener los inputs correspondientes al prodCount actual
+        var prodCount = selectElement.name.match(/\d+/)[0]; // Extraer el número de prodCount
+
+        var idField = document.getElementById("prod-id" + prodCount);
+        var priceField = document.getElementById("prod-price" + prodCount);
+
+        // Asignar valores a los campos
+        if (idField && priceField) {
+            idField.value = productId;
+            priceField.value = productPrice;
+        }
+    }
+    function LoadPrice(selectElement){
+        //Obtener la opción seleccionada
+        const productId = selectElement.value;
+
+        //obtener la fila padre del select
+        const row = selectElement.closest('tr');
+
+        //obtener el campo de precio dentro de esta fila
+        const priceInput = row.querySelector('input[class*="price-input"]');
+        //obtener el campo de cantidad dentro de esta fila
+        const quantityInput = row.querySelector('.quantity-input');
+        
+        console.log("productId: ", productId);
+        console.log("priceInput: ", priceInput);
+        console.log("quantityInput: ", quantityInput);
+
+        // Llamada AJAX al servidor para obtener el precio
+        fetch(`/Purchase/GetProductPrice?productId=${productId}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Error al obtener el precio");
+            return response.json();
+        })
+        .then(data => {
+            // Actualizar el valor del campo precio
+            priceInput.value = data.price;
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            priceInput.value = "0";
+        });
+
+    }
+    function CalculateTotal(selectElement){
+        const totalInput = document.getElementById("total-input");
+        const quantity = +selectElement.value;
+        const unitPrice = +selectElement.closest('tr').querySelector('.price-input').value;
+        const total = quantity * unitPrice;
+        totalInput.value = (+totalInput.value || 0) + total;
+    }
+</script>

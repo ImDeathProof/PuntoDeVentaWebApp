@@ -11,14 +11,14 @@ namespace PuntoDeVentaWeb.Models
         public decimal Total { get; set; }
         public DateTime Date { get; set; }
         //Supplier
-        public int SupplierId { get; set; }
-        public Supplier Supplier { get; set; }
+        public int? SupplierId { get; set; }
+        public Supplier? Supplier { get; set; }
         //User  
-        public int UserId { get; set; }
-        public User User { get; set; }
+        public string? UserId { get; set; }
+        public User? User { get; set; }
         //Payment
-        public int PaymentId { get; set; }
-        public Payment Payment { get; set; }
+        public int? PaymentMethodId { get; set; }
+        public PaymentMethod? PaymentMethod { get; set; }
 
         //PurchaseDetail
         public ICollection<PurchaseDetail> PurchaseDetails { get; set; }

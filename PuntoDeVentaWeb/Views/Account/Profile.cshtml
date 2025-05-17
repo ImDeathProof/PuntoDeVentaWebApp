@@ -1,0 +1,80 @@
+@model PuntoDeVentaWeb.Models.ProfileViewModel
+
+<h1>@ViewData["Title"]</h1>
+@if (!User.Identity.IsAuthenticated)
+{
+    <p>Por favor, inicie sesión para acceder a su perfil.</p>
+}
+else{
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="bi bi-person-circle"></i> Mi Perfil</h3>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Profile" method="post" ectype="multipart/form-data">
+                            <div class="row">
+                                <!-- Datos del usuario -->
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label asp-for="Id" class="form-label"></label>
+                                        <input type="text" asp-for="Id" class="form-control" readonly>
+                                        <span asp-validation-for="Id" class="text-danger"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="Name" class="form-label"></label>
+                                        <input asp-for="Name" class="form-control">
+                                        <span asp-validation-for="Name" class="text-danger"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label asp-for="LastName" class="form-label"></label>
+                                        <input asp-for="LastName" class="form-control">
+                                        <span asp-validation-for="LastName" class="text-danger"></span>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label asp-for="Email" class="form-label"></label>
+                                        <input asp-for="Email" class="form-control" readonly>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label asp-for="PhoneNumber" class="form-label"></label>
+                                        <input asp-for="PhoneNumber" class="form-control">
+                                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save"></i> Guardar cambios
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <!-- Sección para cambiar contraseña -->
+                        <div class="mt-5 pt-4 border-top">
+                            <h5><i class="bi bi-key"></i> Cambiar contraseña</h5>
+                            <partial name="ChangePasswordPartial" model="new ChangePasswordViewModel()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+@section Scripts {
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profilePicture').src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

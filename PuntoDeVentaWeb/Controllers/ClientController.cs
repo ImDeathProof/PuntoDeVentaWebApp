@@ -10,23 +10,22 @@ using PuntoDeVentaWeb.Models;
 
 namespace PuntoDeVentaWeb.Controllers
 {
-    public class ProductController : Controller
+    public class ClientController : Controller
     {
         private readonly DataContext _context;
 
-        public ProductController(DataContext context)
+        public ClientController(DataContext context)
         {
             _context = context;
         }
 
-        // GET: Product
+        // GET: Client
         public async Task<IActionResult> Index()
         {
-            var dataContext = _context.Products.Include(p => p.Brand).Include(p => p.Category);
-            return View(await dataContext.ToListAsync());
+            return View(await _context.Clients.ToListAsync());
         }
 
-        // GET: Product/Details/5
+        // GET: Client/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -34,45 +33,39 @@ namespace PuntoDeVentaWeb.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
+            var client = await _context.Clients
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            if (client == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(client);
         }
 
-        // GET: Product/Create
+        // GET: Client/Create
         public IActionResult Create()
         {
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name");
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
             return View();
         }
 
-        // POST: Product/Create
+        // POST: Client/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,CategoryId,BrandId,SKU,Stock,Price,Image")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,Name,LastName,Email,Phone,Address")] Client client)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);
+                _context.Add(client);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
-            return View(product);
+            return View(client);
         }
 
-        // GET: Product/Edit/5
+        // GET: Client/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -80,24 +73,22 @@ namespace PuntoDeVentaWeb.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
+            var client = await _context.Clients.FindAsync(id);
+            if (client == null)
             {
                 return NotFound();
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
-            return View(product);
+            return View(client);
         }
 
-        // POST: Product/Edit/5
+        // POST: Client/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,CategoryId,BrandId,SKU,Stock,Price,Image")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,LastName,Email,Phone,Address")] Client client)
         {
-            if (id != product.Id)
+            if (id != client.Id)
             {
                 return NotFound();
             }
@@ -106,12 +97,12 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 try
                 {
-                    _context.Update(product);
+                    _context.Update(client);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductExists(product.Id))
+                    if (!ClientExists(client.Id))
                     {
                         return NotFound();
                     }
@@ -122,12 +113,10 @@ namespace PuntoDeVentaWeb.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
-            return View(product);
+            return View(client);
         }
 
-        // GET: Product/Delete/5
+        // GET: Client/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -135,45 +124,34 @@ namespace PuntoDeVentaWeb.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
+            var client = await _context.Clients
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            if (client == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(client);
         }
 
-        // POST: Product/Delete/5
+        // POST: Client/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product != null)
+            var client = await _context.Clients.FindAsync(id);
+            if (client != null)
             {
-                _context.Products.Remove(product);
+                _context.Clients.Remove(client);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductExists(int id)
+        private bool ClientExists(int id)
         {
-            return _context.Products.Any(e => e.Id == id);
-        }
-          // get product list
-        public List<Product> GetProducts()
-        {
-            return _context.Products.ToList();
-        }
-        public IEnumerable<Product> GetProductList()
-        {
-            return _context.Products.ToList();
+            return _context.Clients.Any(e => e.Id == id);
         }
     }
 }
