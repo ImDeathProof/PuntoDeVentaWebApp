@@ -1,0 +1,17 @@
+:root {
+    /* Fondos */
+    --color-bg-dark: #121212;      /* Fondo principal */
+    --color-bg-secondary: #1e1e1e; /* Tarjetas/secciones */
+    --color-bg-tertiary: #2d2d2d;  /* Elementos interactivos */
+  
+    /* Textos */
+    --color-text-primary: #e0e0e0;  /* Texto principal */
+    --color-text-secondary: #a0a0a0; /* Texto secundario */
+  
+    /* Acentos/botones */
+    --color-accent: #3F51B5;        /* Azul material (ejemplo) */
+    --color-accent-hover: #5c6bc0;  /* Variante clara */
+  
+    /* Bordes */
+    --color-border: #333333;
+  }

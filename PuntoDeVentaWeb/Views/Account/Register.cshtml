@@ -39,18 +39,33 @@
                                     <option value="">Select User role</option>
                                 </select>
                             </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label asp-for="Password" class="form-label"></label>
-                                <input asp-for="Password" type="password" class="form-control" />
-                                <span asp-validation-for="Password" class="text-danger"></span>
-                            </div>
-                            
-                            <div class="col-md-6 mb-4">
-                                <label asp-for="ConfirmPassword" class="form-label"></label>
-                                <input asp-for="ConfirmPassword" type="password" class="form-control" />
-                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                            </div>
+                            <div id="passwordFields">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Password" class="form-label"></label>
+                                        <input asp-for="Password" type="password" class="form-control" />
+                                        <span asp-validation-for="Password" class="text-danger"></span>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-4">
+                                        <label asp-for="ConfirmPassword" class="form-label"></label>
+                                        <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 mb-3 alert alert-secondary" role="alert">
+                                        Password requeriments:
+                                        <ul class="mb-0">
+                                            <li><p>At least 1 digit (0-9)</p></li>
+                                            <li><p>At least 1 lowercase letter (a-z)</p></li>
+                                            <li><p>At least 1 uppercase letter (A-Z)</p></li>
+                                            <li><p>@Html.Raw("At least 1 non-alphanumeric character (e.g. -._@%!¡¿?)")</p></li>
+                                            <li><p>At least 6 characters</p></li>
+                                            <li><p>At least 1 unique character</p></li>
+                                        </ul>
+                                    </div>
+                                </div>
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100 py-2">
