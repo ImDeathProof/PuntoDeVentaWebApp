@@ -38,7 +38,11 @@ public class RegisterViewModel
     [Display(Name = "User role")]
     public string SelectedRole { get; set; }
 
-    [Required(ErrorMessage = "La contraseña es requerida")]
+    [Required(ErrorMessage = "Phone number is requiered")]
+    [Display(Name = "Phone number")]
+    public string PhoneNumber { get; set; }
+
+        [Required(ErrorMessage = "La contraseña es requerida")]
     [StringLength(100, ErrorMessage = "La {0} debe tener al menos {2} caracteres.", MinimumLength = 8)]
     [DataType(DataType.Password)]
     public string Password { get; set; }

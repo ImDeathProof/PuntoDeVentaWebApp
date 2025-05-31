@@ -1,0 +1,57 @@
+@model IEnumerable<PuntoDeVentaWeb.Models.PurchaseDetail>
+
+@{
+    ViewData["Title"] = "Purchase Details";
+}
+
+<h1>Purchase Details</h1>
+
+
+<p class="d-inline-flex gap-1">
+    <a class="btn btn-primary" data-bs-toggle="collapse" href="#createDetail" role="button" aria-expanded="false" aria-controls="createDetail">
+        Add Detail
+    </a>
+    <div class="collapse" id="createDetail">
+        <div class="card card-body">
+            @{
+                await Html.RenderPartialAsync("Create", new PuntoDeVentaWeb.Models.PurchaseDetail());
+            }
+        </div>
+    </div>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Quantity)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Purchase)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Product)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Quantity)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Purchase.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Product.Name)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

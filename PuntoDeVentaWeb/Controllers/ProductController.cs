@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ using PuntoDeVentaWeb.Models;
 
 namespace PuntoDeVentaWeb.Controllers
 {
+    [Authorize]
     public class ProductController : Controller
     {
         private readonly DataContext _context;
@@ -166,7 +168,7 @@ namespace PuntoDeVentaWeb.Controllers
         {
             return _context.Products.Any(e => e.Id == id);
         }
-          // get product list
+        // get product list
         public List<Product> GetProducts()
         {
             return _context.Products.ToList();

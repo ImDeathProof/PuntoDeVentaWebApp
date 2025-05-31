@@ -1,27 +1,25 @@
-@model PurchaseViewModel
+@model PuntoDeVentaWeb.Models.PurchaseViewModel
+
+@{
+    ViewData["Title"] = "Create Purchase";
+}
 
 <form asp-action="Create" method="post">
     <!-- Datos de la compra -->
-    <div class="form-group">
-        <div>
-            <label asp-for="Purchase.Date"></label>
+        <div class="form-group">
+            <label asp-for="Purchase.Date" class="control-label"></label>
             <input asp-for="Purchase.Date" class="form-control" />
-        </div>
-        <div>
-            <label asp-for="Purchase.User"></label>
-            <select asp-for="Purchase.UserId" class="form-control" asp-items="ViewBag.Users"></select>
-        </div>
-        <div>
-            <label asp-for="Purchase.Supplier"></label>
-            <select asp-for="Purchase.SupplierId" class="form-control" asp-items="ViewBag.Suppliers"></select>
-        </div>
-        <div>
-            <label asp-for="Purchase.PaymentMethod"></label>
-            <select asp-for="Purchase.PaymentMethodId" class="form-control" asp-items="ViewBag.PaymentMethods"></select>
-        </div>
-    </div>
-    
 
+            <label asp-for="Purchase.User" class="control-label"></label>
+            <select asp-for="Purchase.UserId" class="form-control" asp-items="ViewBag.UserId"></select>
+            
+            <label asp-for="Purchase.Supplier" class="control-label"></label>
+            <select asp-for="Purchase.SupplierId" class="form-control" asp-items="ViewBag.SupplierId"></select>
+
+            <label asp-for="Purchase.PaymentMethod" class="control-label"></label>
+            <select asp-for="Purchase.PaymentMethodId" class="form-control" asp-items="ViewBag.PaymentMethodsId"></select>
+        </div>
+    
     <!-- Tabla de detalles (PurchaseDetails) -->
     <table class="table" id="detailsTable">
         <thead>
@@ -29,7 +27,6 @@
                 <th>N°</th>
                 <th>Product</th>
                 <th>Quantity</th>
-                <th>Unit Price</th>
                 <th></th>
             </tr>
         </thead>
@@ -38,16 +35,14 @@
             {
                 <tr>
                     <td>@i</td>
-                    <td><select asp-for="PurchaseDetails[i].ProductId" asp-items="ViewBag.Products" class="form-control" onchange="LoadPrice(this)"></select></td>
-                    <td><input asp-for="PurchaseDetails[i].Quantity" class="form-control quantity-input" onchange="CalculateTotal(this)"/></td>
-                    <td><input class="form-control price-input" readonly/></td>
+                    <td><select asp-for="PurchaseDetails[@i].ProductId" asp-items="ViewBag.ProductId" class="form-control"></select></td>
+                    <td><input asp-for="PurchaseDetails[@i].Quantity" class="form-control quantity-input"/></td>
                     <td><button type="button" class="btn btn-danger" onclick="removeDetail(this)">Eliminar</button></td>
                 </tr>
             }
         </tbody>
     </table>
 
-    <input asp-for="Purchase.Total" class="form-control" id="total-input" value="0" readonly />
 
     <button type="button" class="btn btn-success" onclick="addDetail()">+ Agregar Detalle</button>
     <button type="submit" class="btn btn-primary">Guardar Compra</button>
@@ -65,18 +60,17 @@
                 <td>
                     <select name="PurchaseDetails[${index}].ProductId" 
                             class="form-control product-select"
-                            onchange="LoadPrice(this)">
-                        @if (ViewBag.Products != null)
+                            >
+                        @if (ViewBag.ProductId != null)
                         {
-                            foreach (var product in ViewBag.Products as SelectList)
+                            foreach (var product in ViewBag.ProductId as SelectList)
                             {
                                 <option value="@product.Value">@product.Text</option>
                             }
                         }
                     </select>
                 </td>
-                <td><input name="PurchaseDetails[${index}].Quantity" class="form-control" onchange="CalculateTotal(this)" /></td>
-                <td><input name="PurchaseDetails[${index}].Price" class="form-control price-input" readonly /></td>
+                <td><input name="PurchaseDetails[${index}].Quantity" class="form-control" /></td>
                 <td><button type="button" class="btn btn-danger" onclick="removeDetail(this)">Eliminar</button></td>
             `;
     }
@@ -105,44 +99,5 @@
             idField.value = productId;
             priceField.value = productPrice;
         }
-    }
-    function LoadPrice(selectElement){
-        //Obtener la opción seleccionada
-        const productId = selectElement.value;
-
-        //obtener la fila padre del select
-        const row = selectElement.closest('tr');
-
-        //obtener el campo de precio dentro de esta fila
-        const priceInput = row.querySelector('input[class*="price-input"]');
-        //obtener el campo de cantidad dentro de esta fila
-        const quantityInput = row.querySelector('.quantity-input');
-        
-        console.log("productId: ", productId);
-        console.log("priceInput: ", priceInput);
-        console.log("quantityInput: ", quantityInput);
-
-        // Llamada AJAX al servidor para obtener el precio
-        fetch(`/Purchase/GetProductPrice?productId=${productId}`)
-        .then(response => {
-            if (!response.ok) throw new Error("Error al obtener el precio");
-            return response.json();
-        })
-        .then(data => {
-            // Actualizar el valor del campo precio
-            priceInput.value = data.price;
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            priceInput.value = "0";
-        });
-
-    }
-    function CalculateTotal(selectElement){
-        const totalInput = document.getElementById("total-input");
-        const quantity = +selectElement.value;
-        const unitPrice = +selectElement.closest('tr').querySelector('.price-input').value;
-        const total = quantity * unitPrice;
-        totalInput.value = (+totalInput.value || 0) + total;
     }
 </script>

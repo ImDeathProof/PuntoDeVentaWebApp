@@ -39,6 +39,12 @@
                                     <option value="">Select User role</option>
                                 </select>
                             </div>
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="PhoneNumber" class="form-label"></label>
+                                <input asp-for="PhoneNumber" class="form-control" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+
                             <div id="passwordFields">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">

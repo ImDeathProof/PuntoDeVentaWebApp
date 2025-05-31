@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,10 +8,11 @@ namespace PuntoDeVentaWeb.Models
 {
     public class PurchaseViewModel
     {
-            // Datos de la compra (Purchase)
-    required public Purchase Purchase { get; set; }
+        [Required]
+        public Purchase Purchase { get; set; } = new Purchase();
 
-    // Lista de detalles (PurchaseDetail)
-    public List<PurchaseDetail> PurchaseDetails { get; set; } = new List<PurchaseDetail>();
+        [Required]
+        [Display(Name = "Purchase Details")]
+        public List<PurchaseDetail> PurchaseDetails { get; set; } = new List<PurchaseDetail>();
     }
 }

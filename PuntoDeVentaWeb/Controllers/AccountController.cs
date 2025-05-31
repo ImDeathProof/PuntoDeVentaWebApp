@@ -14,7 +14,6 @@ using PuntoDeVentaWeb.Models;
 
 namespace PuntoDeVentaWeb.Controllers
 {
-    [Authorize]
     public class AccountController : Controller
         {
             private readonly UserManager<User> _userManager;
@@ -88,13 +87,15 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    var user = new User 
-                    { 
-                        UserName = model.Email, 
+                    Console.WriteLine("Model is valid, proceeding with registration.");
+                    Console.WriteLine($"Email: {model.Email}, Password: {model.Password}, Role: {model.SelectedRole}");
+                    var user = new User
+                    {
+                        UserName = model.Email,
                         Email = model.Email,
                         Name = model.Name,
                         LastName = model.LastName,
-                        UserRoleId = model.SelectedRole
+                        PhoneNumber = model.PhoneNumber
                     };
                     
                     var result = await _userManager.CreateAsync(user, model.Password);
@@ -143,6 +144,7 @@ namespace PuntoDeVentaWeb.Controllers
             }
 
             [Authorize]
+            
             public async Task<IActionResult> Profile()
             {
                 ViewData["Title"] = "User Profile";

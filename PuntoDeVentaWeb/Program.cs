@@ -39,12 +39,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
 
     options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.AccessDeniedPath = "/Home/Index";
     options.SlidingExpiration = true;
 });
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+// Repositories and Services
+builder.Services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 
 var app = builder.Build();
 
