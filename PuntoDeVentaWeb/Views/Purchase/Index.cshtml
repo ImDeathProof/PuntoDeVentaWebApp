@@ -9,6 +9,17 @@
 <p>
     <a class="btn btn-primary" asp-action="Create">Create New</a>
 </p>
+@{
+    if (TempData["ErrorMessage"] != null) {
+        <div class="alert alert-danger" role="alert">
+            <p>@TempData["ErrorMessage"]</p>
+        </div>
+    }else if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success" role="alert">
+            <p>@TempData["SuccessMessage"]</p>
+        </div>
+    }
+}
 <table class="table">
     <thead>
         <tr>
@@ -36,7 +47,7 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Total)
+                $ @Html.DisplayFor(modelItem => item.Total)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Date)

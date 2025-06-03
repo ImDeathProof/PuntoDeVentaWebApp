@@ -8,6 +8,17 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+@{
+    if (TempData["ErrorMessage"] != null) {
+        <div class="alert alert-danger" role="alert">
+            <p>@TempData["ErrorMessage"]</p>
+        </div>
+    }else if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success" role="alert">
+            <p>@TempData["SuccessMessage"]</p>
+        </div>
+    }
+}
 <table class="table">
     <thead>
         <tr>

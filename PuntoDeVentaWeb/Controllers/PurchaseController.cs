@@ -16,11 +16,13 @@ namespace PuntoDeVentaWeb.Controllers
     {
         private readonly DataContext _context;
         private readonly IPurchaseService _purchaseService;
+        private readonly IProductService _productService;
 
-        public PurchaseController(DataContext context, IPurchaseService purchaseService)
+        public PurchaseController(DataContext context, IPurchaseService purchaseService, IProductService productService)
         {
             _purchaseService = purchaseService;
             _context = context;
+            _productService = productService;
         }
 
         // GET: Purchase
@@ -90,41 +92,43 @@ namespace PuntoDeVentaWeb.Controllers
 
             try
             {
-                // Asignar fecha actual si no viene especificada
+                // Asigns date if not set
                 if (model.Purchase.Date == default)
                 {
                     model.Purchase.Date = DateTime.Now;
                 }
 
-                // Filtrar detalles vacíos
+                // Check empty
                 model.PurchaseDetails = model.PurchaseDetails?
                     .Where(d => d.ProductId > 0 && d.Quantity > 0)
                     .ToList();
 
                 if (model.PurchaseDetails == null || !model.PurchaseDetails.Any())
                 {
-                    ModelState.AddModelError("", "Debe agregar al menos un producto a la compra");
+                    TempData["ErrorMessage"] = "Most add one detail at least.";
                     return View(model);
                 }
-                // Guardar Purchase primero (esto generará el ID)
+                // Save the purchase first to obtain an id
                 _context.Purchases.Add(model.Purchase);
                 await _context.SaveChangesAsync();
 
-                // Procesar detalles
                 foreach (var detail in model.PurchaseDetails)
                 {
                     detail.PurchaseId = model.Purchase.Id;
                     _context.PurchaseDetails.Add(detail);
+                    //Add products to stock
+                    await _productService.addStockAsync(detail.ProductId, detail.Quantity);
                 }
                 await _context.SaveChangesAsync();
-                // Actualizar el total de la compra
+                // Update total price of the purchase
                 await _purchaseService.UpdatePurchaseTotalAsync(model.Purchase.Id);
+                TempData["SuccessMessage"] = "Purchase created successfully.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
-                ModelState.AddModelError("", "No se pudo guardar la compra. Error: " + ex.Message);
+                TempData["ErrorMessage"] = "An error occurred while creating the purchase. Please try again.";
                 return View(model);
             }
         }

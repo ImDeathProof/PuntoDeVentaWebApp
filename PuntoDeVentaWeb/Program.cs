@@ -48,6 +48,8 @@ builder.Services.AddRazorPages();
 // Repositories and Services
 builder.Services.AddScoped<IPurchaseRepository, PurchaseRepository>();
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 

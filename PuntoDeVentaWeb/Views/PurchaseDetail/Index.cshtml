@@ -5,8 +5,17 @@
 }
 
 <h1>Purchase Details</h1>
-
-
+@{
+    if (TempData["ErrorMessage"] != null) {
+        <div class="alert alert-danger" role="alert">
+            <p>@TempData["ErrorMessage"]</p>
+        </div>
+    }else if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success" role="alert">
+            <p>@TempData["SuccessMessage"]</p>
+        </div>
+    }
+}
 <p class="d-inline-flex gap-1">
     <a class="btn btn-primary" data-bs-toggle="collapse" href="#createDetail" role="button" aria-expanded="false" aria-controls="createDetail">
         Add Detail

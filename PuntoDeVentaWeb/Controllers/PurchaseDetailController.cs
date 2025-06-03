@@ -14,11 +14,13 @@ namespace PuntoDeVentaWeb.Controllers
     {
         private readonly DataContext _context;
         private readonly IPurchaseService _purchaseService;
+        private readonly IProductService _productService;
 
-        public PurchaseDetailController(DataContext context, IPurchaseService purchaseService)
+        public PurchaseDetailController(DataContext context, IPurchaseService purchaseService, IProductService productService)
         {
             _context = context;
             _purchaseService = purchaseService;
+            _productService = productService;
         }
 
         // GET: PurchaseDetail/Index/purchaseId
@@ -88,11 +90,11 @@ namespace PuntoDeVentaWeb.Controllers
         {
             if (ModelState.IsValid)
             {
+                // If the product already exists in the purchase, update the quantity.
                 bool checkMultiple = _context.PurchaseDetails
                     .Any(p => p.PurchaseId == purchaseDetail.PurchaseId && p.ProductId == purchaseDetail.ProductId);
                 if (checkMultiple)
                 {
-                    // If the product already exists in the purchase, update the quantity.
                     var existingDetail = _context.PurchaseDetails
                         .FirstOrDefault(p => p.PurchaseId == purchaseDetail.PurchaseId && p.ProductId == purchaseDetail.ProductId);
                     if (existingDetail != null)
@@ -106,8 +108,15 @@ namespace PuntoDeVentaWeb.Controllers
                         if (purchase != null)
                         {
                             await _purchaseService.UpdatePurchaseTotalAsync(purchaseDetail.PurchaseId);
+                            await _productService.addStockAsync(purchaseDetail.ProductId, purchaseDetail.Quantity);
+                            TempData["SuccessMessage"] = "Product detail added successfully.";
+                            return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
                         }
-                        return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
+                        else
+                        {
+                            TempData["ErrorMessage"] = "Purchase not found.";
+                            return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
+                        }
                     }
                 }
                 else
@@ -120,12 +129,18 @@ namespace PuntoDeVentaWeb.Controllers
                     if (purchase != null)
                     {
                         await _purchaseService.UpdatePurchaseTotalAsync(purchaseDetail.PurchaseId);
+                        await _productService.addStockAsync(purchaseDetail.ProductId, purchaseDetail.Quantity);
+                        TempData["SuccessMessage"] = "Product detail added successfully.";
+                        return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
                     }
-                    return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Purchase not found.";
+                        return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
+                    }
                 }
-                return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
             }
-
+            TempData["ErrorMessage"] = "Invalid data. Please check the input.";
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", purchaseDetail.ProductId);
             ViewData["PurchaseId"] = purchaseDetail.PurchaseId;
             return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
@@ -173,6 +188,12 @@ namespace PuntoDeVentaWeb.Controllers
                     {
                         await _purchaseService.UpdatePurchaseTotalAsync(purchaseDetail.PurchaseId);
                     }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Purchase not found.";
+                        return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
+                    }
+
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -185,8 +206,10 @@ namespace PuntoDeVentaWeb.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                TempData["SuccessMessage"] = "Product detail updated successfully.";
+                return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
             }
+            TempData["ErrorMessage"] = "Invalid data. Please check the input.";
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name", purchaseDetail.ProductId);
             ViewData["PurchaseId"] = purchaseDetail.PurchaseId;
             return View(purchaseDetail);
@@ -220,11 +243,34 @@ namespace PuntoDeVentaWeb.Controllers
             var purchaseDetail = await _context.PurchaseDetails.FindAsync(id);
             if (purchaseDetail != null)
             {
-                _context.PurchaseDetails.Remove(purchaseDetail);
-            }
+                try
+                {
+                    //Check if the purchase exists before deleting the detail.
+                    var purchase = await _context.Purchases.FindAsync(purchaseDetail.PurchaseId);
+                    if (purchase != null)
+                    {
+                        //Remove the purchase detail and update the total price of the purchase.
+                        _context.PurchaseDetails.Remove(purchaseDetail);
+                        await _context.SaveChangesAsync();
+                        // Update the total price of the purchase after removing the detail.
+                        await _purchaseService.UpdatePurchaseTotalAsync(purchase.Id);
+                        TempData["SuccessMessage"] = "Product detail deleted successfully. Purchase total updated.";
+                    }
+                    else
+                    {
+                        //The purchase couldn't be found, so we can't delete the detail.
+                        TempData["ErrorMessage"] = "Purchase not found.";
+                        return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
+                    }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = $"An error occurred while deleting the product detail: {ex.Message}";
+                    return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
+                }
+            }
+            return RedirectToAction(nameof(Index), new { purchaseId = purchaseDetail.PurchaseId });
         }
 
         private bool PurchaseDetailExists(int id)
@@ -232,14 +278,5 @@ namespace PuntoDeVentaWeb.Controllers
             return _context.PurchaseDetails.Any(e => e.Id == id);
         }
 
-        private decimal CalculateTotalPrice(PurchaseDetail purchaseDetail)
-        {
-            var product = _context.Products.Find(purchaseDetail.ProductId);
-            if (product != null)
-            {
-                return purchaseDetail.Quantity * product.Price;
-            }
-            return 0;
-        }
     }
 }

@@ -13,7 +13,7 @@ public class PurchaseRepository : IPurchaseRepository
     public async Task updateTotalAsync(int purchaseId)
     {
         var purchase = await _context.Purchases.FindAsync(purchaseId);
-        if (purchase == null) throw new Exception("Compra no encontrada");
+        if (purchase == null) throw new Exception("Purchase not found");
 
         decimal total = 0;
         var purchaseDetails = await _context.PurchaseDetails

@@ -65,10 +65,13 @@ namespace PuntoDeVentaWeb.Controllers
         {
             if (ModelState.IsValid)
             {
+                product.Price = Math.Round(product.Price, 2); // Ensure price is rounded to 2 decimal places
                 _context.Add(product);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Product created successfully!";
                 return RedirectToAction(nameof(Index));
             }
+            TempData["ErrorMessage"] = "Could not create product. Please check the details and try again.";
             ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
             return View(product);
@@ -108,8 +111,10 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 try
                 {
+                    product.Price = Math.Round(product.Price, 2); // Ensure price is rounded to 2 decimal places
                     _context.Update(product);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Product updated successfully!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -124,6 +129,7 @@ namespace PuntoDeVentaWeb.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            TempData["ErrorMessage"] = "Could not update product. Please check the details and try again.";
             ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
             return View(product);
