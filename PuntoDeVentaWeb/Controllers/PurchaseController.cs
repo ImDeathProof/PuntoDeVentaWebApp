@@ -66,7 +66,7 @@ namespace PuntoDeVentaWeb.Controllers
                 PurchaseDetails = new List<PurchaseDetail> { new PurchaseDetail() } // 1 fila vacía inicial
             };
             ViewData["SupplierId"] = new SelectList(_context.Suppliers, "Id", "Name");
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Name");
+            ViewData["UserId"] = new SelectList(_context.Users.Where(u => u.IsActive == true), "Id", "Name");
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name");
             ViewData["PaymentMethodsId"] = new SelectList(_context.PaymentMethods, "Id", "Name");
             return View(model);
@@ -76,7 +76,7 @@ namespace PuntoDeVentaWeb.Controllers
         public async Task<IActionResult> Create(PurchaseViewModel model)
         {
             ViewData["SupplierId"] = new SelectList(_context.Suppliers, "Id", "Name");
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Name");
+            ViewData["UserId"] = new SelectList(_context.Users.Where(u => u.IsActive == true), "Id", "Name");
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name");
             ViewData["PaymentMethodsId"] = new SelectList(_context.PaymentMethods, "Id", "Name");
 

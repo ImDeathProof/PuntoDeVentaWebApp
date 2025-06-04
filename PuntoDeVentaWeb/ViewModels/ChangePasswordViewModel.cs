@@ -31,4 +31,4 @@ namespace PuntoDeVentaWeb.Models
         ErrorMessage = "Password must include uppercase, lowercase, number and special character")]
         public string ConfirmPassword { get; set; }
     }
-    }
+}

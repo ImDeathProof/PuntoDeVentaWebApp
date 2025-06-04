@@ -51,6 +51,15 @@ namespace PuntoDeVentaWeb.Controllers
                 
                 if (ModelState.IsValid)
                 {
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+                    if (user != null)
+                    {
+                    if (!user.IsActive)
+                        {
+                            ModelState.AddModelError(string.Empty, "User is disabled. Please contact support.");
+                            return View(model);
+                        }    
+                    }
                     var result = await _signInManager.PasswordSignInAsync(
                         model.Email, 
                         model.Password, 
@@ -59,17 +68,17 @@ namespace PuntoDeVentaWeb.Controllers
                         
                     if (result.Succeeded)
                     {
-                        _logger.LogInformation("Usuario autenticado.");
+                        _logger.LogInformation("User authenticated.");
                         return RedirectToAction("Profile", "Account");
                         
                     }
-                    ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
+                    ModelState.AddModelError(string.Empty, "User or password is wrong.");
                 }
                 return View(model);
             }
 
             [HttpGet]
-            [AllowAnonymous]
+            [Authorize(Roles = "Owner,Admin")]
             public IActionResult Register()
             {
                 var roles = _roleManager.Roles
@@ -81,7 +90,7 @@ namespace PuntoDeVentaWeb.Controllers
             }
 
             [HttpPost]
-            [AllowAnonymous]
+            [Authorize(Roles = "Owner,Admin")]
             [ValidateAntiForgeryToken]
             public async Task<IActionResult> Register(RegisterViewModel model)
             {
@@ -95,19 +104,38 @@ namespace PuntoDeVentaWeb.Controllers
                         Email = model.Email,
                         Name = model.Name,
                         LastName = model.LastName,
-                        PhoneNumber = model.PhoneNumber
+                        PhoneNumber = model.PhoneNumber,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
                     };
-                    
+                    //Saving the user
+                    Console.WriteLine("Creating user in UserManager.");
                     var result = await _userManager.CreateAsync(user, model.Password);
-                    // await _userManager.AddToRoleAsync(user, model.SelectedRole);
-                    await _userManager.AddToRoleAsync(user, model.SelectedRole);
-                    _logger.LogInformation($"New user registered with rol {model.SelectedRole}: {model.Email}");
-                    if (result.Succeeded)
+                    // Check if the user was created successfully
+                    if (!result.Succeeded)
                     {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return RedirectToAction("Index", "Home");
+                        TempData["ErrorMessage"] = "An error occurred while creating the user. Please try again.";
+                        return RedirectToAction("Register");
                     }
-                    AddErrors(result);
+                    //Delay a little to ensure the user is created
+                    await Task.Delay(100);
+                    // Check if the user was created successfully
+                    var createdUser = await _userManager.FindByEmailAsync(model.Email);
+                    if (createdUser == null)
+                    {
+                        TempData["ErrorMessage"] = "An error occurred while creating the user. Please try again.";
+                    }
+                    // Add the user to the selected role
+                    var roleResult = await _userManager.AddToRoleAsync(user, model.SelectedRole);
+                    if (!roleResult.Succeeded)
+                    {
+                        TempData["ErrorMessage"] = "An error occurred while assigning the role. Please try again.";
+                        return RedirectToAction("Register");
+                    }
+
+                    _logger.LogInformation($"New user registered with rol {model.SelectedRole}: {model.Email}");
+                    return RedirectToAction("Index", "User");
+                    
                 }
                 var roles = _roleManager.Roles
                     .Where(r => r.Name != "Owner")

@@ -4,13 +4,13 @@
     Layout = "_Layout"; // Asegúrate que existe en Views/Shared/
 }
 
-<h2>Registro de usuario</h2>
+<h2>User Registration</h2>
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
             <div class="card border-0 shadow-lg">
                 <div class="card-header bg-primary text-white text-center py-3">
-                    <h3><i class="bi bi-person-plus"></i> Crear Cuenta</h3>
+                    <h3><i class="bi bi-person-plus"></i> Register</h3>
                 </div>
                 <div class="card-body p-4">
                     <form asp-action="Register" method="post">
@@ -75,13 +75,9 @@
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100 py-2">
-                            <i class="bi bi-check-circle"></i> Registrarse
+                            <i class="bi bi-check-circle"></i> Register
                         </button>
                     </form>
-                    
-                    <div class="mt-3 text-center">
-                        ¿Ya tienes cuenta? <a asp-action="Login">Inicia sesión</a>
-                    </div>
                 </div>
             </div>
         </div>

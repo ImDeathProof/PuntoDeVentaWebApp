@@ -1,0 +1,46 @@
+@model IEnumerable<PuntoDeVentaWeb.Models.UserViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>User List</h1>
+
+<p>
+    <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Create New</a>
+</p>
+@{
+    if (TempData["ErrorMessage"] != null) {
+        <div class="alert alert-danger" role="alert">
+            <p>@TempData["ErrorMessage"]</p>
+        </div>
+    }else if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success" role="alert">
+            <p>@TempData["SuccessMessage"]</p>
+        </div>
+    }
+}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model) {
+            <tr>
+                <td>@item.Name  @item.LastName</td>
+                <td>@item.Email</td>
+                <td>@item.UserRole</td>
+                <td>
+                    <a class="btn btn-primary" asp-controller="User" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                    <a class="btn btn-info" asp-controller="User" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
