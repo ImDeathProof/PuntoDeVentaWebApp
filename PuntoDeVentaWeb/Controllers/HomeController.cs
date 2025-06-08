@@ -9,11 +9,13 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly SignInManager<User> _signInManager;
+    private readonly UserManager<User> _userManager;
 
-    public HomeController(ILogger<HomeController> logger, SignInManager<User> signInManager)
+    public HomeController(ILogger<HomeController> logger, SignInManager<User> signInManager, UserManager<User> userManager)
     {
         _logger = logger;
         _signInManager = signInManager;
+        _userManager = userManager;
     }
 
     public IActionResult Index()
@@ -21,7 +23,8 @@ public class HomeController : Controller
         // Check if the user is authenticated
         if (_signInManager.IsSignedIn(User))
         {
-            ViewData["User"] = User.Identity?.Name;
+            var user = _userManager.GetUserAsync(User).Result;
+            ViewData["User"] = user?.Name + " " + user?.LastName;
         }
         else
         {

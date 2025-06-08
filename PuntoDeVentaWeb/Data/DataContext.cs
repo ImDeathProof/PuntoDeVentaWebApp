@@ -24,7 +24,61 @@ namespace PuntoDeVentaWeb.Data
         public DbSet<Models.Sale> Sales { get; set; }
         public DbSet<Models.SaleDetail> SaleDetails { get; set; }
         public DbSet<Models.Supplier> Suppliers { get; set; }
-        public DbSet<Models.User> Users { get; set; }
-        public DbSet<Models.UserRole> UserRoles { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            // Relationships and constraints for Product entity
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Brand)
+                .WithMany()
+                .HasForeignKey(p => p.BrandId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Category)
+                .WithMany()
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // Relationships and constraints for Purchase entity
+            modelBuilder.Entity<Purchase>()
+                .HasOne(p => p.Supplier)
+                .WithMany()
+                .HasForeignKey(p => p.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Purchase>()
+                .HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Purchase>()
+                .HasOne(p => p.PaymentMethod)
+                .WithMany()
+                .HasForeignKey(p => p.PaymentMethodId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // Relationships and constraints for purchase detail entity
+            modelBuilder.Entity<PurchaseDetail>()
+                .HasOne(pd => pd.Product)
+                .WithMany()
+                .HasForeignKey(pd => pd.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // Relationships and constraints for Sale entity
+            modelBuilder.Entity<Sale>()
+                .HasOne(s => s.Client)
+                .WithMany()
+                .HasForeignKey(s => s.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<SaleDetail>()
+            .HasOne(sd => sd.Product)
+                .WithMany()
+                .HasForeignKey(sd => sd.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // Relationships and constraints for Payment entity
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.PaymentMethod)
+                .WithMany()
+                .HasForeignKey(p => p.PaymentMethodId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace PuntoDeVentaWeb.Models
 {
-    public class UserRole : IdentityRole
+    public class UserRole : IdentityRole<string>
     {
         public int AccessLevel { get; set; } 
         public string? Description { get; set; }

@@ -8,6 +8,17 @@
 
 <h4>Brand</h4>
 <hr />
+@{
+    if (TempData["ErrorMessage"] != null) {
+        <div class="alert alert-danger" role="alert">
+            <p>@TempData["ErrorMessage"]</p>
+        </div>
+    }else if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success" role="alert">
+            <p>@TempData["SuccessMessage"]</p>
+        </div>
+    }
+}
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create">

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -15,17 +16,40 @@ namespace PuntoDeVentaWeb.Controllers
     public class ProductController : Controller
     {
         private readonly DataContext _context;
+        private readonly IProductService _productService;
 
-        public ProductController(DataContext context)
+        public ProductController(DataContext context, IProductService productService)
         {
             _context = context;
+            _productService = productService;
         }
-
         // GET: Product
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string filter)
         {
-            var dataContext = _context.Products.Include(p => p.Brand).Include(p => p.Category);
-            return View(await dataContext.ToListAsync());
+            ViewData["CurrentFilter"] = filter;
+            var products = _context.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .AsQueryable();
+            switch (filter)
+            {
+                case "LowerStock":
+                    products = products.Where(p => p.Stock <= 10).OrderBy(p => p.Stock);
+                    break;
+                case "HigherStock":
+                    products = products.Where(p => p.Stock > 10).OrderByDescending(p => p.Stock);
+                    break;
+                case "Oldest":
+                    products = products.OrderBy(p => p.Id);
+                    break;
+                case "Latest":
+                    products = products.OrderByDescending(p => p.Id);
+                    break;
+                default:
+                    products = products.OrderBy(p => p.Name);
+                    break;
+            }
+            return View(await products.ToListAsync());
         }
 
         // GET: Product/Details/5
@@ -163,10 +187,26 @@ namespace PuntoDeVentaWeb.Controllers
             var product = await _context.Products.FindAsync(id);
             if (product != null)
             {
-                _context.Products.Remove(product);
+                try
+                {
+
+                    if (_productService.checkIfProductExistsInPurchaseAsync(id) || _productService.checkIfProductExistsInSaleAsync(id))
+                    {
+                        TempData["ErrorMessage"] = "Cannot delete product because it is associated with a purchase or sale.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    _context.Products.Remove(product);
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Product deleted successfully!";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DBConcurrencyException)
+                {
+                    TempData["ErrorMessage"] = "Could not delete product. Please try again later.";
+                    return RedirectToAction(nameof(Index));
+                }
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 

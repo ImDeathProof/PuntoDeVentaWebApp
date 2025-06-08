@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace PuntoDeVentaWeb.Models
 {
-    public class User : IdentityUser
+    public class User : IdentityUser<string>
     {
         public string? Name { get; set; }
         public string? LastName { get; set; }

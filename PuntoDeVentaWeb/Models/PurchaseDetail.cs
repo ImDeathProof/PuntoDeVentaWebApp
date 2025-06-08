@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,6 +22,9 @@ namespace PuntoDeVentaWeb.Models
         [Required]
         [Display(Name = "Product")]
         public int ProductId { get; set; }
+        [Display(Name = "Product")]
+        [Required(ErrorMessage = "The product is required.")]
+        [ForeignKey("ProductId")]
         public Product? Product { get; set; }
 
     }

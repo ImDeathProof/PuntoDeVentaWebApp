@@ -22,9 +22,15 @@ namespace PuntoDeVentaWeb.Controllers
         }
 
         // GET: Client
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search)
         {
-            return View(await _context.Clients.ToListAsync());
+            ViewData["CurrentSearch"] = search;
+            var users = _context.Clients.AsQueryable();
+            if (!string.IsNullOrEmpty(search))
+            {
+                users = users.Where(c => c.Name.Contains(search) || c.LastName.Contains(search) || c.Email.Contains(search) || c.Phone.Contains(search));
+            }
+            return View(await users.ToListAsync());
         }
 
         // GET: Client/Details/5

@@ -1,12 +1,12 @@
 @model IEnumerable<PuntoDeVentaWeb.Models.Product>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Product List";
 }
-<h1>Index</h1>
+<h1>@ViewData["Title"]</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a class="btn btn-primary" asp-action="Create"><i class="fa-solid fa-plus"></i> Create New</a>
 </p>
 @{
     if (TempData["ErrorMessage"] != null) {
@@ -19,6 +19,42 @@
         </div>
     }
 }
+<div>
+    <form asp-action="Index" method="get">
+        <label for="filter">Filter by:</label>
+        <div class="form-group">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="filter" id="radioLatest" value="Latest" 
+                @(ViewData["CurrentFilter"]?.ToString() == "Latest" || ViewData["CurrentFilter"] == null ? "checked" : "")>
+                <label class="form-check-label" for="radioLatest">
+                    Latest products
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="filter" id="radioOldest" value="Oldest" 
+                @(ViewData["CurrentFilter"]?.ToString() == "Oldest" ? "checked" : "")>
+                <label class="form-check-label" for="radioOldest">
+                    Oldest products
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="filter" id="radioHigherStock" value="HigherStock" 
+                @(ViewData["CurrentFilter"]?.ToString() == "HigherStock" ? "checked" : "")>
+                <label class="form-check-label" for="radioHigherStock">
+                    Higher stock first
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="filter" id="radioLowerStock" value="LowerStock" 
+                @(ViewData["CurrentFilter"]?.ToString() == "LowStock" ? "checked" : "")>
+                <label class="form-check-label" for="radioLowerStock">
+                    Lower stock first(<=10)
+                </label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Apply</button>
+    </form>
+</div>
 <table class="table">
     <thead>
         <tr>
@@ -47,7 +83,8 @@
     </thead>
     <tbody>
 @foreach (var item in Model) {
-        <tr>
+        
+        <tr  class="@(item.Stock <= 10 ? "table-danger" : "")">
             <td>
                 @Html.DisplayFor(modelItem => item.Name)
             </td>
@@ -67,9 +104,9 @@
                 @Html.DisplayFor(modelItem => item.Price)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-success">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger">Delete</a>
             </td>
         </tr>
 }

@@ -18,6 +18,18 @@ public class ProductRepository : IProductRepository
         _context.Products.Update(product);
     }
 
+    public bool checkIfProductExistsInPurchaseAsync(int productId)
+    {
+        bool exists = _context.PurchaseDetails.Any(p => p.ProductId == productId);
+        return exists;
+    }
+
+    public bool checkIfProductExistsInSaleAsync(int productId)
+    {
+        bool exists = _context.SaleDetails.Any(s => s.ProductId == productId);
+        return exists;
+    }
+
     public async Task removeStockAsync(int productId, int quantity)
     {
         var product = await _context.Products.FindAsync(productId);

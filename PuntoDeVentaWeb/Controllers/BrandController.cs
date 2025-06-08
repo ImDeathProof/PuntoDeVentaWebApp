@@ -59,11 +59,39 @@ namespace PuntoDeVentaWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Brand brand)
         {
+            if (brand == null)
+            {
+                TempData["ErrorMessage"] = "Brand cannot be null.";
+                return View(brand);
+            }
             if (ModelState.IsValid)
             {
-                _context.Add(brand);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    bool exist = await _context.Brands.AnyAsync(b => b.Name.ToLower() == brand.Name.ToLower());
+                    if (exist)
+                    {
+                        TempData["ErrorMessage"] = "A brand with this name already exists.";
+                        return View(brand);
+                    }
+
+                    _context.Add(brand);
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Brand created successfully.";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException ex)
+                {
+                    Console.WriteLine($"Error creating brand: {ex.Message}");
+                    TempData["ErrorMessage"] = "An error occurred while saving the brand. Please try again.";
+                    return View(brand);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Unexpected error: {ex.Message}");
+                    TempData["ErrorMessage"] = "An unexpected error occurred. Please try again.";
+                    return View(brand);
+                }
             }
             return View(brand);
         }
@@ -142,14 +170,26 @@ namespace PuntoDeVentaWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var brand = await _context.Brands.FindAsync(id);
-            if (brand != null)
-            {
-                _context.Brands.Remove(brand);
-            }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var brand = await _context.Brands.FindAsync(id);
+                if (brand != null)
+                {
+                    _context.Brands.Remove(brand);   
+                    await _context.SaveChangesAsync();
+                }
+                TempData["SuccessMessage"] = "Brand deleted successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (ex) if necessary
+                Console.WriteLine($"Error deleting brand: {ex.Message}");
+                // Set an error message to TempData to display in the view
+                TempData["ErrorMessage"] = "An error occurred while trying to delete the brand. It may be associated with other records.";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         private bool BrandExists(int id)

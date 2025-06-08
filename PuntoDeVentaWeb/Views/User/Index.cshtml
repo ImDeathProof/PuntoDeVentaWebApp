@@ -1,13 +1,13 @@
 @model IEnumerable<PuntoDeVentaWeb.Models.UserViewModel>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "User List";
 }
 
-<h1>User List</h1>
+<h1>@ViewData["Title"]</h1>
 
 <p>
-    <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Create New</a>
+    <a class="btn btn-primary" asp-controller="Account" asp-action="Register"><i class="fa-solid fa-plus"></i> New User</a>
 </p>
 @{
     if (TempData["ErrorMessage"] != null) {
@@ -20,27 +20,43 @@
         </div>
     }
 }
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model) {
+<hr>
+<div class="table-responsive border">
+    <table class="table">
+        <thead>
             <tr>
-                <td>@item.Name  @item.LastName</td>
-                <td>@item.Email</td>
-                <td>@item.UserRole</td>
-                <td>
-                    <a class="btn btn-primary" asp-controller="User" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
-                    <a class="btn btn-info" asp-controller="User" asp-action="Details" asp-route-id="@item.Id">Details</a>
-                </td>
+                <th>State</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) {
+                <tr>
+                    @if(@item.IsActive) {
+                        <td>
+                            <span class="badge bg-success">Active</span>
+                        </td>
+                    } else {
+                        <td>
+                            <span class="badge bg-danger">Inactive</span>
+                        </td>
 
+                    }
+                    
+                    <td>@item.Name  @item.LastName</td>
+                    <td>@item.Email</td>
+                    <td>@item.UserRole</td>
+                    <td>
+                        <a class="btn btn-primary" asp-controller="User" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                        <a class="btn btn-info" asp-controller="User" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+
+</div>

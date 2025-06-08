@@ -26,10 +26,32 @@ namespace PuntoDeVentaWeb.Controllers
         }
 
         // GET: Purchase
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search)
         {
-            var dataContext = _context.Purchases.Include(p => p.PaymentMethod).Include(p => p.Supplier).Include(p => p.User);
-            return View(await dataContext.ToListAsync());
+            ViewData["Search"] = search;
+            var purchases = _context.Purchases
+                .Include(p => p.PaymentMethod)
+                .Include(p => p.Supplier)
+                .Include(p => p.User)
+                .AsQueryable();
+            if (!string.IsNullOrEmpty(search))
+            {
+                purchases = purchases.Where(p => p.Supplier.Name.Contains(search) ||
+                                                  p.User.Name.Contains(search) ||
+                                                  p.User.LastName.Contains(search));
+            }
+            if (!string.IsNullOrEmpty(search))
+            {
+                if (purchases.Count() == 0)
+                {
+                    TempData["ErrorMessage"] = "No purchases found. Please add a purchase.";
+                }
+                else
+                {
+                    TempData["SuccessMessage"] = $"{purchases.Count()} purchases found.";
+                }
+            }
+            return View(await purchases.ToListAsync());
         }
 
         // GET: Purchase/Details/5
@@ -52,12 +74,6 @@ namespace PuntoDeVentaWeb.Controllers
 
             return View(purchase);
         }
-
-
-
-        // // POST: Purchase/Create
-        // // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         public IActionResult Create()
         {
             var model = new PurchaseViewModel
@@ -71,6 +87,7 @@ namespace PuntoDeVentaWeb.Controllers
             ViewData["PaymentMethodsId"] = new SelectList(_context.PaymentMethods, "Id", "Name");
             return View(model);
         }
+        // // POST: Purchase/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PurchaseViewModel model)
@@ -106,6 +123,21 @@ namespace PuntoDeVentaWeb.Controllers
                 if (model.PurchaseDetails == null || !model.PurchaseDetails.Any())
                 {
                     TempData["ErrorMessage"] = "Most add one detail at least.";
+                    return View(model);
+                }
+                if (model.Purchase.SupplierId <= 0)
+                {
+                    TempData["ErrorMessage"] = "You must select a valid supplier.";
+                    return View(model);
+                }
+                if (model.Purchase.PaymentMethodId <= 0)
+                {
+                    TempData["ErrorMessage"] = "You must select a valid payment method.";
+                    return View(model);
+                }
+                if (model.Purchase.UserId == "Unselected")
+                {
+                    TempData["ErrorMessage"] = "You must select a valid user.";
                     return View(model);
                 }
                 // Save the purchase first to obtain an id

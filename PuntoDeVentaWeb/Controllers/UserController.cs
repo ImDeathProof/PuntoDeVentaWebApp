@@ -33,7 +33,7 @@ namespace PuntoDeVentaWeb.Controllers
         public async Task<IActionResult> Index()
         {
             var model = new List<UserViewModel>();
-            var users = await _userManager.Users.ToListAsync();
+            var users = await _userManager.Users.OrderByDescending(u => u.IsActive).ToListAsync();
             foreach (var user in users)
             {
                 model.Add(new UserViewModel

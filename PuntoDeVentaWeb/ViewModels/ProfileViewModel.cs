@@ -18,8 +18,9 @@ namespace PuntoDeVentaWeb.Models
     
     [Display(Name = "LastName")]
     public string? LastName { get; set; }
-    
+
     [EmailAddress]
+    [Display(Name = "E-mail")]
     public string? Email { get; set; }
     
     [Phone]
