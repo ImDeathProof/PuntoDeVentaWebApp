@@ -88,6 +88,7 @@ namespace PuntoDeVentaWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Quantity,PurchaseId,ProductId")] PurchaseDetail purchaseDetail)
         {
+            //Console.WriteLine($"Creating PurchaseDetail: {purchaseDetail.Quantity} of ProductId: {purchaseDetail.ProductId} for PurchaseId: {purchaseDetail.PurchaseId}");
             if (ModelState.IsValid)
             {
                 // If the product already exists in the purchase, update the quantity.

@@ -12,15 +12,15 @@ using PuntoDeVentaWeb.Data;
 namespace PuntoDeVentaWeb.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250530004640_ChangeDateToSmallDateTime")]
-    partial class ChangeDateToSmallDateTime
+    [Migration("20250610200120_InitialIdentitySetup")]
+    partial class InitialIdentitySetup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "9.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -443,11 +443,20 @@ namespace PuntoDeVentaWeb.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DesactivatedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<string>("LastName")
@@ -489,9 +498,6 @@ namespace PuntoDeVentaWeb.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("UserRoleId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
@@ -501,8 +507,6 @@ namespace PuntoDeVentaWeb.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("UserRoleId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -596,7 +600,7 @@ namespace PuntoDeVentaWeb.Migrations
                     b.HasOne("PuntoDeVentaWeb.Models.PaymentMethod", "PaymentMethod")
                         .WithMany()
                         .HasForeignKey("PaymentMethodId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PuntoDeVentaWeb.Models.Sale", "Sale")
@@ -615,13 +619,13 @@ namespace PuntoDeVentaWeb.Migrations
                     b.HasOne("PuntoDeVentaWeb.Models.Brand", "Brand")
                         .WithMany()
                         .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PuntoDeVentaWeb.Models.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Brand");
@@ -634,19 +638,19 @@ namespace PuntoDeVentaWeb.Migrations
                     b.HasOne("PuntoDeVentaWeb.Models.PaymentMethod", "PaymentMethod")
                         .WithMany()
                         .HasForeignKey("PaymentMethodId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PuntoDeVentaWeb.Models.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PuntoDeVentaWeb.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("PaymentMethod");
@@ -661,7 +665,7 @@ namespace PuntoDeVentaWeb.Migrations
                     b.HasOne("PuntoDeVentaWeb.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PuntoDeVentaWeb.Models.Purchase", "Purchase")
@@ -679,7 +683,8 @@ namespace PuntoDeVentaWeb.Migrations
                 {
                     b.HasOne("PuntoDeVentaWeb.Models.Client", "Client")
                         .WithMany()
-                        .HasForeignKey("ClientId");
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Client");
                 });
@@ -689,7 +694,7 @@ namespace PuntoDeVentaWeb.Migrations
                     b.HasOne("PuntoDeVentaWeb.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("PuntoDeVentaWeb.Models.Sale", "Sale")
@@ -701,15 +706,6 @@ namespace PuntoDeVentaWeb.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Sale");
-                });
-
-            modelBuilder.Entity("PuntoDeVentaWeb.Models.User", b =>
-                {
-                    b.HasOne("PuntoDeVentaWeb.Models.UserRole", "UserRole")
-                        .WithMany()
-                        .HasForeignKey("UserRoleId");
-
-                    b.Navigation("UserRole");
                 });
 
             modelBuilder.Entity("PuntoDeVentaWeb.Models.Purchase", b =>

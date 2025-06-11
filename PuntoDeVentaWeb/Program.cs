@@ -58,38 +58,50 @@ var app = builder.Build();
 if (!app.Environment.IsProduction())
 {
     using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<DataContext>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<UserRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    db.Database.Migrate();
 
     //Credentials
-    var ownerEmail = builder.Configuration["OwnerCredentials:Email"] 
+    var ownerEmail = builder.Configuration["OwnerCredentials:Email"]
         ?? Environment.GetEnvironmentVariable("OWNER_EMAIL");
     var ownerPassword = builder.Configuration["OwnerCredentials:Password"]
         ?? Environment.GetEnvironmentVariable("OWNER_PASSWORD");
-    
-    if(ownerEmail != null && ownerPassword != null)
+
+    if (ownerEmail != null && ownerPassword != null)
     {
-        if(!await roleManager.RoleExistsAsync("Owner"))
+        if (!await roleManager.RoleExistsAsync("Owner"))
         {
-            var role = new UserRole
+            var role = new UserRole("Owner") // Usa el nuevo constructor
             {
-                Name = "Owner",
                 NormalizedName = "OWNER",
                 AccessLevel = 10,
                 Description = "God access level for the owner of the system"
             };
             await roleManager.CreateAsync(role);
+
         }
-        if(await userManager.FindByEmailAsync(ownerEmail) == null)
+        if (await userManager.FindByEmailAsync(ownerEmail) == null)
         {
-            var owner = new User {
+            var owner = new User
+            {
                 UserName = ownerEmail,
                 Email = ownerEmail,
                 NormalizedUserName = ownerEmail.ToUpper(),
                 NormalizedEmail = ownerEmail.ToUpper(),
                 EmailConfirmed = true,
             };
-            await userManager.CreateAsync(owner, ownerPassword);
+            var result = await userManager.CreateAsync(owner, ownerPassword);
+            if (!result.Succeeded)
+            {
+                // Log de errores (útil para depuración)
+                foreach (var error in result.Errors)
+                {
+                    Console.WriteLine($"Error: {error.Description}");
+                }
+                throw new Exception("Error al crear el usuario propietario");
+            }
             await userManager.AddToRoleAsync(owner, "Owner");
         }
     }
@@ -126,6 +138,20 @@ if (!app.Environment.IsProduction())
             Description = "Manager access level"
         };
         await roleManager.CreateAsync(role);
+    }
+    // add payment methods
+    if(!await db.PaymentMethods.AnyAsync())
+    {
+        var paymentMethods = new List<PaymentMethod>
+        {
+            new PaymentMethod { Name = "Cash"},
+            new PaymentMethod { Name = "Credit Card"},
+            new PaymentMethod { Name = "Debit Card"},
+            new PaymentMethod { Name = "Bank Transfer"},
+            new PaymentMethod { Name = "Check"},
+        };
+        await db.PaymentMethods.AddRangeAsync(paymentMethods);
+        await db.SaveChangesAsync();
     }
 }
 // Configure the HTTP request pipeline.
