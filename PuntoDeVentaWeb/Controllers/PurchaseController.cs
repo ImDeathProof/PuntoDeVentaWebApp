@@ -104,7 +104,6 @@ namespace PuntoDeVentaWeb.Controllers
                 {
                     Console.WriteLine(error.ErrorMessage);
                 }
-                //return View(model);
             }
 
             try
@@ -180,23 +179,12 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 return NotFound();
             }
-            var purchaseDetails = await _context.PurchaseDetails
-                .Include(d => d.Product)          // Carga el Producto relacionado
-                    .ThenInclude(p => p.Brand)    // Carga la Marca del Producto
-                .Where(d => d.PurchaseId == purchase.Id)
-                .ToListAsync();
-
-            var model = new PurchaseViewModel
-            {
-                Purchase = purchase,
-                PurchaseDetails = purchaseDetails
-            };
 
             ViewData["SupplierId"] = new SelectList(_context.Suppliers, "Id", "Name");
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Name");
             ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name");
             ViewData["PaymentMethodsId"] = new SelectList(_context.PaymentMethods, "Id", "Name");
-            return View(model);
+            return View(purchase);
         }
 
         // POST: Purchase/Edit/5
@@ -217,17 +205,12 @@ namespace PuntoDeVentaWeb.Controllers
                 {
                     _context.Update(purchase);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Purchase updated successfully";
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!PurchaseExists(purchase.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    TempData["ErrorMessage"] = "An error occurred while updating the purchase";
+                    Console.WriteLine(ex.Message);
                 }
                 return RedirectToAction(nameof(Index));
             }

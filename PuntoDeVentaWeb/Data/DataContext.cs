@@ -23,6 +23,7 @@ namespace PuntoDeVentaWeb.Data
         public DbSet<Models.PurchaseDetail> PurchaseDetails { get; set; }
         public DbSet<Models.Sale> Sales { get; set; }
         public DbSet<Models.SaleDetail> SaleDetails { get; set; }
+        public DbSet<Models.Status> Status { get; set; }
         public DbSet<Models.Supplier> Suppliers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

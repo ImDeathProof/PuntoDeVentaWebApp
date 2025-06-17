@@ -1,4 +1,4 @@
-@model PuntoDeVentaWeb.Models.PurchaseViewModel
+@model PuntoDeVentaWeb.Models.Purchase
 
 @{
     ViewData["Title"] = "Edit";
@@ -20,31 +20,31 @@
             <form asp-action="Edit">
                 <h4>Purchase</h4>
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <input type="hidden" asp-for="Purchase.Id" />
+                <input type="hidden" asp-for="Id" />
                 <div class="form-group">
-                    <label asp-for="Purchase.Total" class="control-label"></label>
-                    <input asp-for="Purchase.Total" class="form-control" id="total-input" />
-                    <span asp-validation-for="Purchase.Total" class="text-danger"></span>
+                    <label asp-for="Total" class="control-label"></label>
+                    <input asp-for="Total" class="form-control" id="total-input" />
+                    <span asp-validation-for="Total" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="Purchase.Date" class="control-label"></label>
-                    <input asp-for="Purchase.Date" class="form-control" />
-                    <span asp-validation-for="Purchase.Date" class="text-danger"></span>
+                    <label asp-for="Date" class="control-label"></label>
+                    <input type="datetime" asp-for="Date" class="form-control" />
+                    <span asp-validation-for="Date" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="Purchase.SupplierId" class="control-label"></label>
-                    <select asp-for="Purchase.SupplierId" class="form-control" asp-items="ViewBag.SupplierId"></select>
-                    <span asp-validation-for="Purchase.SupplierId" class="text-danger"></span>
+                    <label asp-for="SupplierId" class="control-label"></label>
+                    <select asp-for="SupplierId" class="form-control" asp-items="ViewBag.SupplierId"></select>
+                    <span asp-validation-for="SupplierId" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="Purchase.UserId" class="control-label"></label>
-                    <select asp-for="Purchase.UserId" class="form-control" asp-items="ViewBag.UserId"></select>
-                    <span asp-validation-for="Purchase.UserId" class="text-danger"></span>
+                    <label asp-for="UserId" class="control-label"></label>
+                    <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId"></select>
+                    <span asp-validation-for="UserId" class="text-danger"></span>
                 </div>
                 <div class="form-group">
-                    <label asp-for="Purchase.PaymentMethodId" class="control-label"></label>
-                    <select asp-for="Purchase.PaymentMethodId" class="form-control" asp-items="ViewBag.PaymentMethodsId"></select>
-                    <span asp-validation-for="Purchase.PaymentMethodId" class="text-danger"></span>
+                    <label asp-for="PaymentMethodId" class="control-label"></label>
+                    <select asp-for="PaymentMethodId" class="form-control" asp-items="ViewBag.PaymentMethodsId"></select>
+                    <span asp-validation-for="PaymentMethodId" class="text-danger"></span>
                 </div>
                 <div class="form-group">
                     <input type="submit" value="Save" class="btn btn-primary" />
@@ -56,5 +56,5 @@
 
 <div>
     <a asp-action="Index">Back to List</a>
-    <a asp-controller="PurchaseDetail" asp-action="Index" asp-route-purchaseId="@Model.Purchase.Id" class="btn btn-info">Purchase Details</a> 
+    <a asp-controller="PurchaseDetail" asp-action="Index" asp-route-purchaseId="@Model.Id" class="btn btn-info">Purchase Details</a> 
 </div>

@@ -8,48 +8,48 @@ namespace PuntoDeVentaWeb.Models
 {
     public class LoginViewModel
 {
-    [Required(ErrorMessage = "El email es requerido")]
-    [EmailAddress(ErrorMessage = "Formato de email inválido")]
+    [Required(ErrorMessage = "The email is required")]
+    [EmailAddress(ErrorMessage = "Invalid email format")]
     public string Email { get; set; }
 
-    [Required(ErrorMessage = "La contraseña es requerida")]
+    [Required(ErrorMessage = "The password is required")]
     [DataType(DataType.Password)]
     public string Password { get; set; }
 
-    [Display(Name = "Recordar sesión")]
+    [Display(Name = "Remember me")]
     public bool RememberMe { get; set; }
 }
 
 public class RegisterViewModel
 {
-    [Required(ErrorMessage = "El nombre es requerido")]
+    [Required(ErrorMessage = "This field is required")]
     [Display(Name = "Name")]
     public string Name { get; set; }
     
-    [Required(ErrorMessage = "El apellido es requerido")]
+    [Required(ErrorMessage = "This field is required")]
     [Display(Name = "Lastname")]
     public string LastName { get; set; }
 
-    [Required(ErrorMessage = "El email es requerido")]
+    [Required(ErrorMessage = "This field is required")]
     [EmailAddress(ErrorMessage = "Formato de email inválido")]
     public string Email { get; set; }
 
-    [Required(ErrorMessage = "User role is requiered")]
+    [Required(ErrorMessage = "This field is required")]
     [Display(Name = "User role")]
     public string SelectedRole { get; set; }
 
-    [Required(ErrorMessage = "Phone number is requiered")]
+    [Required(ErrorMessage = "This field is required")]
     [Display(Name = "Phone number")]
     public string PhoneNumber { get; set; }
 
-        [Required(ErrorMessage = "La contraseña es requerida")]
-    [StringLength(100, ErrorMessage = "La {0} debe tener al menos {2} caracteres.", MinimumLength = 8)]
+    [Required(ErrorMessage = "This field is required")]
+    [StringLength(100, ErrorMessage = "The {0} must have at least {2} characters.", MinimumLength = 8)]
     [DataType(DataType.Password)]
     public string Password { get; set; }
 
     [DataType(DataType.Password)]
-    [Display(Name = "Confirmar contraseña")]
-    [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
+    [Display(Name = "Confirm password")]
+    [Compare("Password", ErrorMessage = "Passwords must be the same")]
     public string ConfirmPassword { get; set; }
 }
 }

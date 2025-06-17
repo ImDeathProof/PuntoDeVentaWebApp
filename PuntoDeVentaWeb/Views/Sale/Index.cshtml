@@ -1,0 +1,65 @@
+@model IEnumerable<PuntoDeVentaWeb.Models.Sale>
+
+@{
+    ViewData["Title"] = "Sales List";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create"><i class="fa-solid fa-plus"></i> Create Sale</a>
+</p>
+@{
+    if (TempData["ErrorMessage"] != null) {
+        <div class="alert alert-danger" role="alert">
+            <p>@TempData["ErrorMessage"]</p>
+        </div>
+    } else if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success" role="alert">
+            <p>@TempData["SuccessMessage"]</p>
+        </div>
+    }
+}
+<hr>
+<div class="col-md-4 my-3">
+    <form asp-action="Index" method="get">
+        <div class="input-group">
+            <input type="text" id="search" name="search" class="form-control" placeholder="Search by customer or seller" aria-label="Recipient" value="@ViewData["Search"]" />
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+</div>
+<hr>
+
+<div class="table-responsive border">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Seller</th>
+                <th>Status</th>
+                <th>@Html.DisplayName("Actions")</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) {
+                <tr>
+                    <td>@item.Date.ToString("g")</td>
+                    <td>@item.Client.Name</td>
+                    <td>@item.User.Name</td>
+                    <td>@item.Status.Name</td>
+                    <td>
+                        <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id"><i class="fa-solid fa-eye"></i></a>
+                        <a class="btn btn-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="fa-solid fa-edit"></i></a>
+                        <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="fa-solid fa-trash"></i></a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Any()) {
+                <tr>
+                    <td colspan="6" class="text-center">No sales found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

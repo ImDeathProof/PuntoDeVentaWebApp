@@ -1,10 +1,10 @@
 @model IEnumerable<PuntoDeVentaWeb.Models.Purchase>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Purchase List";
 }
 
-<h1>Purchase List</h1>
+<h1>@ViewData["Title"]</h1>
 
 <p>
     <a class="btn btn-primary" asp-action="Create"><i class="fa-solid fa-plus"></i> Create New</a>
@@ -74,9 +74,10 @@
                     @Html.DisplayFor(modelItem => item.PaymentMethod.Name)
                 </td>
                 <td>
-                    <a class="btn btn-success" asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a class="btn btn-danger"asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id"><i class="fa-solid fa-eye"></i></a>
+                    <a asp-controller="PurchaseDetail" asp-action="Index" asp-route-purchaseId="@item?.Id" class="btn btn-info"><i class="fa-solid fa-list"></i></a>
+                    <a class="btn btn-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="fa-solid fa-edit"></i></a>
+                    <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="fa-solid fa-trash"></i></a>
                 </td>
             </tr>
     }

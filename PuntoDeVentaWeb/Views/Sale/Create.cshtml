@@ -1,7 +1,6 @@
-@model PuntoDeVentaWeb.Models.PurchaseViewModel
-
+@model PuntoDeVentaWeb.Models.SalesViewModel
 @{
-    ViewData["Title"] = "Create Purchase";
+    ViewData["Title"] = "Create Sale";
 }
 <h1>@ViewData["Title"]</h1>
 @{
@@ -22,33 +21,27 @@
     <form asp-action="Create" method="post">
         <div class="card-body">
             <div class="mb-3 form-group">
-                <label asp-for="Purchase.Date" class="control-label"></label>
-                <input asp-for="Purchase.Date" class="form-control" />
-                <span asp-validation-for="Purchase.Date" class="text-danger"></span>
+                <label asp-for="Sale.Date" cñass="form-label"></label>
+                <input asp-for="Sale.Date" class="form-control" />
+                <span asp-validation-for="Sale.Date" class="text-danger"></span>
             </div>
             <div class="mb-3 form-group">
-                <label asp-for="Purchase.User" class="control-label"></label>
-                <select asp-for="Purchase.UserId" class="form-control" asp-items="ViewBag.UserId">
-                    <option value="Unselected">Select a user</option>
-                </select>
-                <span asp-validation-for="Purchase.UserId" class="text-danger"></span>
+                <label asp-for="Sale.ClientId" class="form-label">Client</label>
+                <select asp-for="Sale.ClientId" class="form-select" asp-items="ViewBag.ClientId"></select>
+                <span asp-validation-for="Sale.ClientId" class="text-danger"></span>
             </div>
             <div class="mb-3 form-group">
-                <label asp-for="Purchase.Supplier" class="control-label"></label>
-                <select asp-for="Purchase.SupplierId" class="form-control" asp-items="ViewBag.SupplierId">
-                    <option value="0">Select a supplier</option>
-                </select>
-                <span asp-validation-for="Purchase.SupplierId" class="text-danger"></span>
+                <label asp-for="Sale.UserId" classs="form-label">Seller</label>
+                <select asp-for="Sale.UserId" class="form-select" asp-items="ViewBag.SellerId"></select>
+                <span asp-validation-for="Sale.UserId" class="text-danger"></span>
             </div>
             <div class="mb-3 form-group">
-                <label asp-for="Purchase.PaymentMethod" class="control-label"></label>
-                <select asp-for="Purchase.PaymentMethodId" class="form-control" asp-items="ViewBag.PaymentMethodsId">
-                    <option value="0">Select Payment Method</option>
-                </select>
-                <span asp-validation-for="Purchase.PaymentMethodId" class="text-danger"></span>
+                <label asp-for="Sale.PaymentMethodId" class="form-label">Payment Method</label>
+                <select asp-for="Sale.PaymentMethodId" class="form-select" asp-items="ViewBag.PaymentMethodId"></select>
+                <span asp-validation-for="Sale.PaymentMethodId" class="text-danger"></span>
             </div>
             <div class="mb-3 border p-3 rounded table-responsive">
-                <span asp-validation-for="PurchaseDetails" class="text-danger"></span>
+                <span asp-validation-for="SaleDetails" class="text-danger" class="alert alert-danger"></span>
                 <table class="table" id="detailsTable">
                     <thead>
                         <tr>
@@ -59,12 +52,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @for (int i = 0; i < Model.PurchaseDetails.Count; i++)
+                        @for (int i = 0; i < Model.SaleDetails.Count; i++)
                         {
                             <tr>
                                 <td>@i</td>
-                                <td><select asp-for="PurchaseDetails[@i].ProductId" asp-items="ViewBag.ProductId" class="form-control"></select></td>
-                                <td><input asp-for="PurchaseDetails[@i].Quantity" class="form-control quantity-input"/></td>
+                                <td><select asp-for="SaleDetails[@i].ProductId" asp-items="ViewBag.ProductId" class="form-control"></select></td>
+                                <td><input asp-for="SaleDetails[@i].Quantity" class="form-control quantity-input"/></td>
                                 <td><button type="button" class="btn btn-danger" onclick="removeDetail(this)">Remove</button></td>
                             </tr>
                         }
@@ -74,13 +67,12 @@
                     <button type="button" class="btn btn-success" onclick="addDetail()"><i class="fa-solid fa-plus"></i></button>
                 </div>
             </div>
-        </div>
-        <div class="card-footer">
-            <button type="submit" class="btn btn-primary">Save</button>
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary">Create Sale</button>
+            </div>
         </div>
     </form>
 </div>
-
 
 <script>
     // Agregar nueva fila
@@ -91,7 +83,7 @@
         newRow.innerHTML = `
                 <td>${index}</td>
                 <td>
-                    <select name="PurchaseDetails[${index}].ProductId" 
+                    <select name="SaleDetails[${index}].ProductId" 
                             class="form-control product-select"
                             >
                         @if (ViewBag.ProductId != null)
@@ -103,11 +95,12 @@
                         }
                     </select>
                 </td>
-                <td><input name="PurchaseDetails[${index}].Quantity" class="form-control" /></td>
-                <td><button type="button" class="btn btn-danger" onclick="removeDetail(this)">Eliminar</button></td>
+                <td><input name="SaleDetails[${index}].Quantity" class="form-control" /></td>
+                <td><button type="button" class="btn btn-danger" onclick="removeDetail(this)">Remove</button></td>
             `;
     }
 
+    // remove rows
     function removeDetail(button) {
         const row = button.closest('tr');
         if(row.rowIndex === 1){
@@ -116,10 +109,10 @@
         row.remove();
     }
     function loadProduct(selectElement) {
-        // Obtener la opción seleccionada
+        // get the selected option
         var selectedOption = selectElement.options[selectElement.selectedIndex];
         console.log(selectedOption.outerHTML);
-        // Obtener el ID y el precio desde los atributos data
+        // get the id and price
         var productId = selectedOption.getAttribute("data-id");
         var productPrice = selectedOption.getAttribute("data-price");
 

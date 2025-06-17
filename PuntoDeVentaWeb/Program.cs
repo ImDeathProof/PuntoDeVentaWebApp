@@ -50,6 +50,8 @@ builder.Services.AddScoped<IPurchaseRepository, PurchaseRepository>();
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ISaleRepository, SaleRepository>();
+builder.Services.AddScoped<ISaleService, SaleService>();
 
 var app = builder.Build();
 
@@ -61,7 +63,7 @@ if (!app.Environment.IsProduction())
     var db = scope.ServiceProvider.GetRequiredService<DataContext>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<UserRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    db.Database.Migrate();
+    //db.Database.Migrate();
 
     //Credentials
     var ownerEmail = builder.Configuration["OwnerCredentials:Email"]
@@ -140,7 +142,7 @@ if (!app.Environment.IsProduction())
         await roleManager.CreateAsync(role);
     }
     // add payment methods
-    if(!await db.PaymentMethods.AnyAsync())
+    if (!await db.PaymentMethods.AnyAsync())
     {
         var paymentMethods = new List<PaymentMethod>
         {
@@ -151,6 +153,20 @@ if (!app.Environment.IsProduction())
             new PaymentMethod { Name = "Check"},
         };
         await db.PaymentMethods.AddRangeAsync(paymentMethods);
+        await db.SaveChangesAsync();
+    }
+    // add status
+    if (!await db.Status.AnyAsync())
+    {
+        var status = new List<Status>
+        {
+            new Status { Name = "Pending" },
+            new Status { Name = "Shipping" },
+            new Status { Name = "Out for Delivery" },
+            new Status { Name = "Completed" },
+            new Status { Name = "Cancelled" }
+        };
+        await db.Status.AddRangeAsync(status);
         await db.SaveChangesAsync();
     }
 }
