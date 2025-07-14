@@ -30,7 +30,8 @@ namespace PuntoDeVentaWeb.Models
         [Display(Name = "Phone number")]
         public required string PhoneNumber { get; set; }
 
-        [Display(Name = "Is Active")]
+        [Display(Name = "State")]
         public bool IsActive { get; set; }
+
     }
 }

@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using PuntoDeVentaWeb.Data;
+using PuntoDeVentaWeb.Models;
 
 public class SaleRepository : ISaleRepository
 {
@@ -9,37 +10,35 @@ public class SaleRepository : ISaleRepository
     {
         _context = context;
     }
-    public async Task UpdateSaleTotalAsync(int saleId)
+    public void UpdateSaleTotalAsync(int saleId, decimal total)
     {
-        var sale = await _context.Sales.FindAsync(saleId);
-        if (sale == null)
-        {
-            throw new Exception("Sale not found");
-        }
-        try
-        {
-            decimal total = 0;
-            var saleDetails = await _context.SaleDetails
-                .Where(sd => sd.SaleId == saleId)
-                .Include(p => p.Product)
-                .ToListAsync();
-            if (saleDetails != null)
-            {
-                foreach (var detail in saleDetails)
-                {
-                    total += detail.Quantity * detail.Product.Price;
-                }
-            }
-            sale.Total = total;
-            _context.Sales.Update(sale);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error updating sale total: {ex.Message}");
-        }
+        _context.Sales
+        .Where(s => s.Id == saleId)
+        .ExecuteUpdate(s => s.SetProperty(s => s.Total, total));
     }
     public async Task SaveAsync()
     {
         await _context.SaveChangesAsync();
+    }
+    public async Task<List<SaleDetail>> GetSaleDetailsAsync(int saleId)
+    {
+        return await _context.SaleDetails
+            .Where(sd => sd.SaleId == saleId)
+            .Include(p => p.Product)
+            .ToListAsync();
+    }
+    public void DeleteSaleDetailsAsync(List<SaleDetail> details)
+    {
+        _context.SaleDetails.RemoveRange(details);
+    }
+
+    public void DeleteSaleAsync(Sale sale)
+    {
+        _context.Sales.Remove(sale);
+    }
+
+    decimal ISaleRepository.CalculateTotal(List<SaleDetail> details)
+    {
+        return details.Sum(sd => sd.Quantity * sd.Product.Price);
     }
 }

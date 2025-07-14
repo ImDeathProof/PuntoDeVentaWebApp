@@ -1,47 +1,51 @@
-@model IEnumerable<PuntoDeVentaWeb.Models.Category>
-
-@{
-    ViewData["Title"] = "Categories List";
-}
+@model IEnumerable<PuntoDeVentaWeb.Models.SaleDetail>
 
 <h1>@ViewData["Title"]</h1>
 
-<p>
-    <a asp-action="Create"  class="btn btn-primary"><i class="fa-solid fa-plus"></i> New Category</a>
-</p>
-<hr>
 @{
     if (TempData["ErrorMessage"] != null) {
         <div class="alert alert-danger" role="alert">
             <p>@TempData["ErrorMessage"]</p>
         </div>
-    }else if (TempData["SuccessMessage"] != null) {
+    } else if (TempData["SuccessMessage"] != null) {
         <div class="alert alert-success" role="alert">
             <p>@TempData["SuccessMessage"]</p>
         </div>
     }
 }
-<div class="table-responsive border">
+<p class="d-inline-flex gap-1">
+    <a class="btn btn-primary" data-bs-toggle="collapse" href="#createDetail" role="button" aria-expanded="false" aria-controls="createDetail">
+        Add Detail
+    </a>
+    <div class="collapse" id="createDetail">
+        <div class="card card-body">
+            @{
+                await Html.RenderPartialAsync("Create", new PuntoDeVentaWeb.Models.SaleDetail());
+            }
+        </div>
+    </div>
+</p>
+
     <table class="table table-hover">
         <thead>
             <tr>
                 <th>
-                    @Html.DisplayNameFor(model => model.Name)
+                    @Html.DisplayNameFor(model => model.Quantity)
                 </th>
                 <th>
-                    @Html.DisplayNameFor(model => model.Description)
+                    @Html.DisplayNameFor(model => model.Product)
                 </th>
-                <th></th>
+                <th>@Html.DisplayName("Actions")</th>
             </tr>
         </thead>
         <tbody>
-    @foreach (var item in Model) {
+        @foreach (var item in Model) {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Name)
+                    @Html.DisplayFor(modelItem => item.Quantity)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.Description)
+                    @Html.DisplayFor(modelItem => item.Product.Name)
                 </td>
                 <td>
                     <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id"><i class="fa-solid fa-eye"></i></a>
@@ -49,8 +53,8 @@
                     <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="fa-solid fa-trash"></i></a>
                 </td>
             </tr>
-    }
+        }
         </tbody>
     </table>
 
-</div>
+

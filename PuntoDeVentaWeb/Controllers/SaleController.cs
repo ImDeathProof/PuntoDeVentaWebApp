@@ -192,6 +192,46 @@ namespace PuntoDeVentaWeb.Controllers
             ViewData["ErrorMessage"] = "Something went wrong while updating the sale. Please try again.";
             return View(sale);
         }
+        public async Task<IActionResult> Delete(int id)
+        {
+            var sale = await _context.Sales
+                .Include(s => s.Client)
+                .Include(s => s.User)
+                .Include(s => s.Status)
+                .Include(s => s.PaymentMethod)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (sale == null)
+            {
+                return NotFound();
+            }
+
+            return View(sale);
+        }
+        // POST: Sale/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var sale = await _context.Sales.FindAsync(id);
+            if (sale != null)
+            {
+                try
+                {
+                    // delete sale
+                    await _saleService.DeleteSaleAsync(sale);
+                    // delete vinculed details
+                    await _saleService.DeleteVinculedDetailsAsync(id);
+                    TempData["SuccessMessage"] = "Sale deleted successfully";
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "An error occurred while deleting the sale";
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
         private bool SaleExists(int id)
         {
             return _context.Sales.Any(e => e.Id == id);

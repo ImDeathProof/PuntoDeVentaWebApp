@@ -39,17 +39,10 @@ namespace PuntoDeVentaWeb.Controllers
 
                 return View(await purchaseDetails.ToListAsync());
             }
-            else // If no purchase id is provided, show all purchase details.
+            else
             {
-                var purchaseDetails = _context.PurchaseDetails
-                    .Include(p => p.Product)
-                    .Include(p => p.Purchase)
-                    .OrderByDescending(p => p.PurchaseId);
-
-                ViewData["ProductId"] = new SelectList(_context.Products, "Id", "Name");
-                ViewData["PurchaseId"] = new SelectList(_context.Purchases, "Id", "Id");
-
-                return View(await purchaseDetails.ToListAsync());
+                ViewData["ErrorMessage"] = "No details found for the specified purchase.";
+                return RedirectToAction("Index", "Purchase");
             }
         }
 

@@ -16,34 +16,35 @@ namespace PuntoDeVentaWeb.Controllers
     public class BrandController : Controller
     {
         private readonly DataContext _context;
+        private readonly IBrandService _brandService;
 
-        public BrandController(DataContext context)
+        public BrandController(DataContext context, IBrandService brandService)
         {
+            _brandService = brandService;
             _context = context;
         }
 
         // GET: Brand
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Brands.ToListAsync());
+            return View(await _brandService.GetAllBrandsAsync());
         }
 
         // GET: Brand/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
+                var brand = await _brandService.GetBrandByIdAsync(id.Value);
+                return View(brand);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching brand details: {ex.Message}");
+                TempData["ErrorMessage"] = "An error ocurred: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
 
-            var brand = await _context.Brands
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (brand == null)
-            {
-                return NotFound();
-            }
-
-            return View(brand);
         }
 
         // GET: Brand/Create
@@ -68,32 +69,27 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 try
                 {
-                    bool exist = await _context.Brands.AnyAsync(b => b.Name.ToLower() == brand.Name.ToLower());
-                    if (exist)
-                    {
-                        TempData["ErrorMessage"] = "A brand with this name already exists.";
-                        return View(brand);
-                    }
+                    // bool exist = await _context.Brands.AnyAsync(b => b.Name.ToLower() == brand.Name.ToLower());
+                    // if (exist)
+                    // {
+                    //     TempData["ErrorMessage"] = "A brand with this name already exists.";
+                    //     return View(brand);
+                    // }
 
-                    _context.Add(brand);
-                    await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Brand created successfully.";
+                    // _context.Add(brand);
+                    // await _context.SaveChangesAsync();
+                    // TempData["SuccessMessage"] = "Brand created successfully.";
+                    await _brandService.AddBrandAsync(brand);
                     return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateException ex)
-                {
-                    Console.WriteLine($"Error creating brand: {ex.Message}");
-                    TempData["ErrorMessage"] = "An error occurred while saving the brand. Please try again.";
-                    return View(brand);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Unexpected error: {ex.Message}");
-                    TempData["ErrorMessage"] = "An unexpected error occurred. Please try again.";
+                    TempData["ErrorMessage"] = "An error ocurred: " + ex.Message;
                     return View(brand);
                 }
             }
-            return View(brand);
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Brand/Edit/5
@@ -104,7 +100,7 @@ namespace PuntoDeVentaWeb.Controllers
                 return NotFound();
             }
 
-            var brand = await _context.Brands.FindAsync(id);
+            var brand = await _brandService.GetBrandByIdAsync(id.Value);
             if (brand == null)
             {
                 return NotFound();
@@ -128,19 +124,14 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 try
                 {
-                    _context.Update(brand);
-                    await _context.SaveChangesAsync();
+                    await _brandService.UpdateBrandAsync(brand);
+                    TempData["SuccessMessage"] = "Brand updated successfully.";
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception ex)
                 {
-                    if (!BrandExists(brand.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    Console.WriteLine($"Error updating brand: {ex.Message}");
+                    TempData["ErrorMessage"] = "An error ocurred: " + ex.Message;
+                    return View(brand);
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -154,15 +145,7 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 return NotFound();
             }
-
-            var brand = await _context.Brands
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (brand == null)
-            {
-                return NotFound();
-            }
-
-            return View(brand);
+            return View(await _brandService.GetBrandByIdAsync(id.Value));
         }
 
         // POST: Brand/Delete/5
@@ -173,12 +156,7 @@ namespace PuntoDeVentaWeb.Controllers
 
             try
             {
-                var brand = await _context.Brands.FindAsync(id);
-                if (brand != null)
-                {
-                    _context.Brands.Remove(brand);   
-                    await _context.SaveChangesAsync();
-                }
+                await _brandService.DeleteBrandAsync(id);
                 TempData["SuccessMessage"] = "Brand deleted successfully.";
                 return RedirectToAction(nameof(Index));
             }
@@ -187,7 +165,7 @@ namespace PuntoDeVentaWeb.Controllers
                 // Log the exception (ex) if necessary
                 Console.WriteLine($"Error deleting brand: {ex.Message}");
                 // Set an error message to TempData to display in the view
-                TempData["ErrorMessage"] = "An error occurred while trying to delete the brand. It may be associated with other records.";
+                TempData["ErrorMessage"] = "An error ocurred: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }

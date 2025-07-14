@@ -1,11 +1,11 @@
 @model PuntoDeVentaWeb.Models.UserViewModel
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Edit User";
 }
 
 <div class="container">
-    <h1>Edit</h1>
+    <h1>@ViewData["Title"]</h1>
     @{
         if (TempData["ErrorMessage"] != null) {
             <div class="alert alert-danger" role="alert">
@@ -17,74 +17,51 @@
             </div>
         }
     }
-    <div class="">
-        <h4>User</h4>
-        <hr />
-        <dl class="row">
-            <dt class = "col-sm-2">
-                @Html.DisplayNameFor(model => model.Name)
-            </dt>
-            <dd class = "col-sm-10">
-                @Html.DisplayFor(model => model.Name)
-            </dd>
-            <dt class = "col-sm-2">
-                @Html.DisplayNameFor(model => model.LastName)
-            </dt>
-            <dd class = "col-sm-10">
-                @Html.DisplayFor(model => model.LastName)
-            </dd>
-            <dt class = "col-sm-2">
-                @Html.DisplayNameFor(model => model.Email)
-            </dt>
-            <dd class = "col-sm-10">
-                @Html.DisplayFor(model => model.Email)
-            </dd>
-            <dt class = "col-sm-2">
-                @Html.DisplayNameFor(model => model.UserRole)
-            </dt>
-            <dd class = "col-sm-10">
-                @Html.DisplayFor(model => model.UserRole)
-            </dd>
-            <dt class = "col-sm-2">
-                @Html.DisplayNameFor(model => model.PhoneNumber)
-            </dt>
-            <dd class = "col-sm-10">
-                @Html.DisplayFor(model => model.PhoneNumber)
-            </dd>
-            <dt clasS= "col-sm-2">
-                @Html.DisplayNameFor(model => model.IsActive)
-            </dt>
-            <dd class = "col-sm-10">
-                @{
-                    if(Model.IsActive == true){
-                        <span class="badge bg-success">Active</span>
-                    }else{
-                        <span class="badge bg-danger">Inactive</span>
+    <hr />
+    <form asp-action="Edit">
+        <div class="row">
+            <dl class="row">
+                <dt class = "form-label">
+                    @Html.DisplayNameFor(model => model.Name)
+                </dt>
+                <input type="text" asp-for="Name" class="form-control" />
+                <dt class = "form-label">
+                    @Html.DisplayNameFor(model => model.LastName)
+                </dt>
+                <input type="text" asp-for="LastName" class="form-control"/>
+                <dt class = "form-label">
+                    @Html.DisplayNameFor(model => model.Email)
+                </dt>
+                <input  type="text" asp-for="Email" class="form-control"/>
+                <dt class = "form-label">
+                    @Html.DisplayNameFor(model => model.UserRole)
+                </dt>
+                <select asp-for="UserRole" class="form-select" asp-items="ViewBag.UserRoles" aria-label="Default select example"></select>
+                <dt class = "form-label">
+                    @Html.DisplayNameFor(model => model.PhoneNumber)
+                </dt>
+                <input  type="text" asp-for="PhoneNumber" class="form-control"/>
+                <dt clasS= "form-label">
+                    @Html.DisplayNameFor(model => model.IsActive)
+                </dt>
+                <dd class = "col-sm-10">
+                    @{
+                        if(Model.IsActive == true){
+                            <span class="badge bg-success">Active</span>
+                        }else{
+                            <span class="badge bg-danger">Inactive</span>
+                        }
                     }
-                }
-            </dd>
-
-            </dt>
-        </dl>
-    </div>
-    <div class="row">
-        <div class="col-4">
-            @{
-                if(Model.IsActive == true){
-                    <form asp-action="Disable" method="post">
-                        <input type="hidden" asp-for="Id" />
-                        <input type="submit" value="Disable" class="btn btn-danger" /> |
-                    </form>
-                }else{
-                    <form asp-action="Enable" method="post">
-                        <input type="hidden" asp-for="Id" />
-                        <input type="submit" value="Enable" class="btn btn-success" /> |
-                    </form>
-                }
-            }
+                </dd>
+            </dl>
         </div>
-        <div class="col-4">
-            <a asp-action="Index">Back to List</a>
+        <div class="row">
+            <div class="col-sm-12">
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
         </div>
-    </div>
+    </form>
+        
 </div>

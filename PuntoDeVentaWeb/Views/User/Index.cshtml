@@ -52,6 +52,24 @@
                     <td>
                         <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id"><i class="fa-solid fa-eye"></i></a>
                         <a class="btn btn-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="fa-solid fa-edit"></i></a>
+                        @if (item.IsActive)
+                        {
+                            <form asp-action="Disable" asp-route-id="@item.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fa-solid fa-x"></i>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Enable" asp-route-id="@item.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                            </form>
+                        }
                     </td>
                 </tr>
             }

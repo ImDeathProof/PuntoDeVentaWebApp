@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using PuntoDeVentaWeb.Data;
 using PuntoDeVentaWeb.Models;
 
@@ -20,13 +21,15 @@ namespace PuntoDeVentaWeb.Controllers
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<UserRole> _roleManager;
         private readonly ILogger<UserController> _logger;
+        private readonly IUserService _userService;
 
-        public UserController(UserManager<User> userManager, RoleManager<UserRole> roleManager, ILogger<UserController> logger, DataContext context)
+        public UserController(UserManager<User> userManager, RoleManager<UserRole> roleManager, ILogger<UserController> logger, DataContext context, IUserService userService)
         {
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
             _logger = logger;
+            _userService = userService;
         }
 
         [Authorize(Roles = "Owner, Admin, Manager")]
@@ -86,13 +89,13 @@ namespace PuntoDeVentaWeb.Controllers
                 return NotFound();
             }
 
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
-
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await LoadRolesAsync(user);
+            ViewBag.UserRoles = new SelectList(roles);
             var model = new UserViewModel
             {
                 Id = user.Id,
@@ -106,6 +109,63 @@ namespace PuntoDeVentaWeb.Controllers
 
             return View(model);
         }
+        [Authorize(Roles = "Owner, Admin, Manager")]
+        // POST: User/Edit/5
+        [HttpPost]
+        public async Task<IActionResult> Edit(string id, [Bind("Id,Name,LastName,Email,PhoneNumber,IsActive,UserRole")] UserViewModel model)
+        {
+            if (string.IsNullOrEmpty(id) || model == null)
+            {
+                return NotFound();
+            }
+
+            if (id != model.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var user = await _userService.GetUserByIdAsync(id);
+                    if (user == null)
+                    {
+                        return NotFound();
+                    }
+                    user.Name = model.Name;
+                    user.LastName = model.LastName;
+                    user.Email = model.Email;
+                    user.NormalizedEmail = model.Email.ToUpper(); // Normalize Email for consistency
+                    user.PhoneNumber = model.PhoneNumber;
+                    user.UserName = model.Email; // Update UserName to match Email
+                    user.NormalizedUserName = model.Email.ToUpper(); // Normalize UserName for consistency
+                    if (!await _userService.IsUserInRoleAsync(user.Id, model.UserRole))
+                    {
+                        if (await _userService.IsUserInRoleAsync(user.Id, "Owner"))
+                        {
+                            TempData["ErrorMessage"] = "Cannot change the role of the owner user. :)";
+                            var roles = await LoadRolesAsync(user);
+                            ViewBag.UserRoles = new SelectList(roles);
+                            return View(model);
+                        }
+                        await _userService.RemoveUserFromRoleAsync(user, await _userService.GetUserRoleAsync(user.Id));
+                        await _userService.AddUserToRoleAsync(user, model.UserRole);
+                    }
+                    await _userService.UpdateUserAsync(user);
+                    _logger.LogInformation($"User {user.Email} updated successfully.");
+                    TempData["SuccessMessage"] = "User updated successfully.";
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred while updating the user.");
+                    TempData["ErrorMessage"] = "An error occurred while updating the user: " + ex.Message;
+                    return View(model);
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(model);
+        }
 
         [Authorize(Roles = "Owner, Admin, Manager")]
         // POST: User/Delete/5
@@ -117,27 +177,32 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 return NotFound();
             }
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
+            try
             {
-                return NotFound();
-            }
-            if (await _userManager.IsInRoleAsync(user, "Owner"))
-            {
-                TempData["ErrorMessage"] = "Cannot do this action with the owner user. :)";
-                return RedirectToAction(nameof(Index));
-            }
-            user.IsActive = false;
-            user.DesactivatedDate = DateTime.UtcNow;
-            var result = await _userManager.UpdateAsync(user);
-            if (result.Succeeded)
-            {
+                var user = await _userService.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                if (await _userService.IsUserInRoleAsync(user.Id, "Owner"))
+                {
+                    TempData["ErrorMessage"] = "Cannot do this action with the owner user. :)";
+                    return RedirectToAction(nameof(Index));
+                }
+                await _userService.DesactivateUserAsync(id);
                 _logger.LogInformation($"User {user.Email} disabled successfully.");
                 TempData["SuccessMessage"] = "User disabled successfully.";
+
+                return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Edit), new { id = user.Id });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while disabling the user.");
+                TempData["ErrorMessage"] = "An error occurred while disabling the user: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
-        
+
         [Authorize(Roles = "Owner, Admin, Manager")]
         // POST: User/Delete/5
         [HttpPost, ActionName("Enable")]
@@ -148,25 +213,53 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 return NotFound();
             }
-            var user = await _userManager.FindByIdAsync(id);
-            if (user == null)
+            try
             {
-                return NotFound();
-            }
-            if(await _userManager.IsInRoleAsync(user, "Owner"))
-            {
-                TempData["ErrorMessage"] = "Cannot do this action with the owner user. :)";
+                var user = await _userService.GetUserByIdAsync(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                if (await _userService.IsUserInRoleAsync(user.Id, "Owner"))
+                {
+                    TempData["ErrorMessage"] = "Cannot do this action with the owner user. :)";
+                    return RedirectToAction(nameof(Index));
+                }
+                await _userService.ActivateUserAsync(id);
+                _logger.LogInformation($"User {user.Email} activated successfully.");
+                TempData["SuccessMessage"] = "User activated successfully.";
+
                 return RedirectToAction(nameof(Index));
             }
-            user.IsActive = true;
-            user.DesactivatedDate = null;
-            var result = await _userManager.UpdateAsync(user);
-            if (result.Succeeded)
+            catch (Exception ex)
             {
-                _logger.LogInformation($"User {user.Email} enabled successfully.");
-                TempData["SuccessMessage"] = "User enabled successfully.";
+                _logger.LogError(ex, "An error occurred while activating the user.");
+                TempData["ErrorMessage"] = "An error occurred while activating the user: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Edit), new { id = user.Id });
+        }
+        private async Task<List<string>> LoadRolesAsync(User user){
+            var roles = new List<string?>
+            {
+                await _userService.GetUserRoleAsync(user.Id)
+            };
+            if (await _userService.IsUserInRoleAsync(user.Id, "Owner"))
+            {
+                var otherRoles = _roleManager.Roles
+                    .Where(r => r.Name != _userService.GetUserRoleAsync(user.Id).Result)
+                    .Select(r => r.Name)
+                    .ToList();
+                roles.AddRange(otherRoles);
+            }
+            else
+            {
+                var otherRoles = _roleManager.Roles
+                    .Where(r => r.Name != _userService.GetUserRoleAsync(user.Id).Result && r.Name != "Owner")
+                    .Select(r => r.Name)
+                    .ToList();
+                roles.AddRange(otherRoles);
+            }
+            return roles;
         }
     }
 }

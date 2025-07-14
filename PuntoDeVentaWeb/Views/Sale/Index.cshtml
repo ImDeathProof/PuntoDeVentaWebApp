@@ -50,6 +50,7 @@
                     <td>@item.Status.Name</td>
                     <td>
                         <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id"><i class="fa-solid fa-eye"></i></a>
+                        <a asp-controller="SaleDetail" asp-action="Index" asp-route-saleId="@item?.Id" class="btn btn-info"><i class="fa-solid fa-list"></i></a>
                         <a class="btn btn-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="fa-solid fa-edit"></i></a>
                         <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="fa-solid fa-trash"></i></a>
                     </td>
