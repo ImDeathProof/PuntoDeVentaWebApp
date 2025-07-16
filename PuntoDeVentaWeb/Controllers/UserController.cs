@@ -36,7 +36,8 @@ namespace PuntoDeVentaWeb.Controllers
         public async Task<IActionResult> Index()
         {
             var model = new List<UserViewModel>();
-            var users = await _userManager.Users.OrderByDescending(u => u.IsActive).ToListAsync();
+            //var users = await _userManager.Users.OrderByDescending(u => u.IsActive).ToListAsync();
+            var users = await _userService.GetAllUsersAsync();
             foreach (var user in users)
             {
                 model.Add(new UserViewModel
@@ -60,14 +61,13 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 return NotFound();
             }
-
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await _userService.GetUserRoleAsync(user.Id);
             var model = new UserViewModel
             {
                 Id = user.Id,
