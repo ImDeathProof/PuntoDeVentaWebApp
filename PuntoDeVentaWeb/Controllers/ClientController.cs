@@ -15,22 +15,24 @@ namespace PuntoDeVentaWeb.Controllers
     public class ClientController : Controller
     {
         private readonly DataContext _context;
+        private readonly IClientService _clientService;
 
-        public ClientController(DataContext context)
+        public ClientController(DataContext context, IClientService clientService)
         {
             _context = context;
+            _clientService = clientService;
         }
 
         // GET: Client
         public async Task<IActionResult> Index(string search)
         {
             ViewData["CurrentSearch"] = search;
-            var users = _context.Clients.AsQueryable();
+            var clients = await _clientService.GetAllClientsAsync();
             if (!string.IsNullOrEmpty(search))
             {
-                users = users.Where(c => c.Name.Contains(search) || c.LastName.Contains(search) || c.Email.Contains(search) || c.Phone.Contains(search));
+                clients = await _clientService.FilterClientsAsync(search);
             }
-            return View(await users.ToListAsync());
+            return View(clients);
         }
 
         // GET: Client/Details/5
@@ -40,15 +42,21 @@ namespace PuntoDeVentaWeb.Controllers
             {
                 return NotFound();
             }
-
-            var client = await _context.Clients
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (client == null)
+            try
             {
-                return NotFound();
+                var client = await _clientService.GetClientByIdAsync(id.Value);
+                if (client == null)
+                {
+                    throw new KeyNotFoundException("Client not found");
+                }
+                return View(client);
             }
-
-            return View(client);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching client details: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Client/Create
@@ -64,29 +72,50 @@ namespace PuntoDeVentaWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,LastName,Email,Phone,Address")] Client client)
         {
-            if (ModelState.IsValid)
+            try
             {
-                _context.Add(client);
-                await _context.SaveChangesAsync();
+                if (!ModelState.IsValid)
+                {
+                    TempData["ErrorMessage"] = "Invalid client data.";
+                    return View(client);
+                }
+                await _clientService.AddClientAsync(client);
+                TempData["SuccessMessage"] = "Client created successfully.";
                 return RedirectToAction(nameof(Index));
             }
-            return View(client);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating client: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return View(client);
+            }
         }
 
         // GET: Client/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                if (id == null)
+                {
+                    TempData["ErrorMessage"] = "Client ID is required.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-            var client = await _context.Clients.FindAsync(id);
-            if (client == null)
-            {
-                return NotFound();
+                var client = await _clientService.GetClientByIdAsync(id.Value);
+                if (client == null)
+                {
+                    TempData["ErrorMessage"] = "Client not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(client);
             }
-            return View(client);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching client for edit: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Client/Edit/5
@@ -96,30 +125,24 @@ namespace PuntoDeVentaWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,LastName,Email,Phone,Address")] Client client)
         {
-            if (id != client.Id)
+            try
             {
-                return NotFound();
+                if (!ModelState.IsValid)
+                {
+                    TempData["ErrorMessage"] = "Invalid client data.";
+                    return View(client);
+                }
+                if (id != client.Id)
+                {
+                    return NotFound();
+                }
+                await _clientService.UpdateClientAsync(client);
+                TempData["SuccessMessage"] = "Client updated successfully.";
             }
-
-            if (ModelState.IsValid)
+            catch (Exception ex)
             {
-                try
-                {
-                    _context.Update(client);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ClientExists(client.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                Console.WriteLine($"Error updating client: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
             }
             return View(client);
         }
@@ -127,33 +150,56 @@ namespace PuntoDeVentaWeb.Controllers
         // GET: Client/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                if (id == null)
+                {
+                    TempData["ErrorMessage"] = "Client ID is required.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-            var client = await _context.Clients
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (client == null)
+                var client = await _clientService.GetClientByIdAsync(id.Value);
+                if (client == null)
+                {
+                    TempData["ErrorMessage"] = "Client not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(client);
+            }
+            catch(Exception ex)
             {
-                return NotFound();
+                Console.WriteLine($"Error fetching client for deletion: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
-
-            return View(client);
         }
 
         // POST: Client/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int? id)
         {
-            var client = await _context.Clients.FindAsync(id);
-            if (client != null)
+            try
             {
-                _context.Clients.Remove(client);
+                if (id == null)
+                {
+                    TempData["ErrorMessage"] = "Client ID is required.";
+                    return RedirectToAction(nameof(Index));
+                }
+                var client = await _clientService.GetClientByIdAsync(id.Value);
+                if (client == null)
+                {
+                    TempData["ErrorMessage"] = "Client not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+                await _clientService.DeleteClientAsync(client);
+                TempData["SuccessMessage"] = "Client deleted successfully.";
             }
-
-            await _context.SaveChangesAsync();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting client: {ex.Message}");
+                TempData["ErrorMessage"] = ex.Message;
+            }
             return RedirectToAction(nameof(Index));
         }
 

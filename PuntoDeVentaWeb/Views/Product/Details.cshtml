@@ -1,13 +1,12 @@
 @model PuntoDeVentaWeb.Models.Product
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Product Details";
 }
 
-<h1>Details</h1>
 
 <div>
-    <h4>Product</h4>
+    <h1>@ViewData["Title"]</h1>
     <hr />
     <dl class="row">
         <div class = "col-8">
@@ -66,6 +65,6 @@
     </dl>
 </div>
 <div>
-    <a class="btn btn-success" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a class="btn btn-success" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a>
+    <a class="btn btn-dark" asp-action="Index">Back to List</a>
 </div>

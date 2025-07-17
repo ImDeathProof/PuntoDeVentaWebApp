@@ -6,9 +6,18 @@
 
 <h1>Delete</h1>
 
-<h3>Are you sure you want to delete this?</h3>
+<h3>Are you sure you want to delete the client?</h3>
 <div>
-    <h4>Client</h4>
+    @{if (TempData["ErrorMessage"] != null) {
+            <div class="alert alert-danger" role="alert">
+                <p>@TempData["ErrorMessage"]</p>
+            </div>
+        }else if (TempData["SuccessMessage"] != null) {
+            <div class="alert alert-success" role="alert">
+                <p>@TempData["SuccessMessage"]</p>
+            </div>
+        }
+    }
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
