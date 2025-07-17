@@ -6,43 +6,55 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using PuntoDeVentaWeb.Data;
 using PuntoDeVentaWeb.Models;
 
 namespace PuntoDeVentaWeb.Controllers
 {
-    [Authorize (Roles = "Admin,Owner,Manager")]
+    [Authorize(Roles = "Admin,Owner,Manager")]
     public class CategoryController : Controller
     {
         private readonly DataContext _context;
+        private readonly ICategoryService _categoryService;
 
-        public CategoryController(DataContext context)
+        public CategoryController(DataContext context, ICategoryService categoryService)
         {
+            _categoryService = categoryService;
             _context = context;
         }
 
         // GET: Category
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Categories.ToListAsync());
+            return View(await _categoryService.GetAllCategoriesAsync());
         }
 
         // GET: Category/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                if (id == null)
+                {
+                    TempData["ErrorMessage"] = "Category ID is required.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-            var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (category == null)
+                var category = await _categoryService.GetCategoryByIdAsync(id.Value);
+                if (category == null)
+                {
+                    TempData["ErrorMessage"] = "Category not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return View(category);
+            }
+            catch (Exception ex)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
             }
-
-            return View(category);
         }
 
         // GET: Category/Create
@@ -58,29 +70,50 @@ namespace PuntoDeVentaWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Description")] Category category)
         {
-            if (ModelState.IsValid)
+            try
             {
-                _context.Add(category);
-                await _context.SaveChangesAsync();
+                if (!ModelState.IsValid)
+                {
+                    TempData["ErrorMessage"] = "Invalid category data.";
+                    return View(category);
+                }
+                await _categoryService.AddCategoryAsync(category);
+                TempData["SuccessMessage"] = "Category created successfully.";
                 return RedirectToAction(nameof(Index));
             }
-            return View(category);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating category: {ex.Message}");
+                TempData["ErrorMessage"] = ex.Message;
+                return View(category);
+            }
         }
 
         // GET: Category/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                if (id == null)
+                {
+                    TempData["ErrorMessage"] = "Category ID is required.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-            var category = await _context.Categories.FindAsync(id);
-            if (category == null)
-            {
-                return NotFound();
+                var category = await _categoryService.GetCategoryByIdAsync(id.Value);
+                if (category == null)
+                {
+                    TempData["ErrorMessage"] = "Category not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(category);
             }
-            return View(category);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching category details: {ex.Message}");
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Category/Edit/5
@@ -90,65 +123,78 @@ namespace PuntoDeVentaWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description")] Category category)
         {
-            if (id != category.Id)
+            try
             {
-                return NotFound();
+                if (!ModelState.IsValid)
+                {
+                    TempData["ErrorMessage"] = "Invalid category data.";
+                    return View(category);
+                }
+                if (id != category.Id)
+                {
+                    TempData["ErrorMessage"] = "Category ID mismatch.";
+                    return RedirectToAction(nameof(Index));
+                }
+                await _categoryService.UpdateCategoryAsync(category);
+                TempData["SuccessMessage"] = "Category updated successfully.";
+                return View(category);
             }
-
-            if (ModelState.IsValid)
+            catch (Exception ex)
             {
-                try
-                {
-                    _context.Update(category);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CategoryExists(category.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                Console.WriteLine($"Error updating category: {ex.Message}");
+                TempData["ErrorMessage"] = "An error occurred: " + ex.Message;
+                return View(category);
             }
-            return View(category);
         }
 
         // GET: Category/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                if (id == null)
+                {
+                    TempData["ErrorMessage"] = "Category ID is required.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-            var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (category == null)
+                var category = await _categoryService.GetCategoryByIdAsync(id.Value);
+                if (category == null)
+                {
+                    TempData["ErrorMessage"] = "Category not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(category);
+            }
+            catch (Exception ex)
             {
-                return NotFound();
+                Console.WriteLine($"Error fetching category for deletion: {ex.Message}");
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
             }
-
-            return View(category);
         }
 
         // POST: Category/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int? id)
         {
-            var category = await _context.Categories.FindAsync(id);
-            if (category != null)
-            {
-                _context.Categories.Remove(category);
+            try {
+                if(id == null)
+                {
+                    TempData["ErrorMessage"] = "Category ID is required.";
+                    return RedirectToAction(nameof(Index));
+                }
+                await _categoryService.DeleteCategoryAsync(id.Value);
+                TempData["SuccessMessage"] = "Category deleted successfully.";
+                return RedirectToAction(nameof(Index));
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting category: {ex.Message}");
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         private bool CategoryExists(int id)

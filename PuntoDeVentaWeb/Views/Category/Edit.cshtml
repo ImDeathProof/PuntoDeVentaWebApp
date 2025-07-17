@@ -1,12 +1,21 @@
 @model PuntoDeVentaWeb.Models.Category
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Category";
 }
 
-<h1>Edit</h1>
-
-<h4>Category</h4>
+<h1>@ViewData["Title"]</h1>
+@{
+    if (TempData["ErrorMessage"] != null) {
+        <div class="alert alert-danger" role="alert">
+            <p>@TempData["ErrorMessage"]</p>
+        </div>
+    }else if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success" role="alert">
+            <p>@TempData["SuccessMessage"]</p>
+        </div>
+    }
+}
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -23,16 +32,14 @@
                 <input asp-for="Description" class="form-control" />
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+            <div class="inline-form-group mt-3">
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                    <a class="btn btn-dark" asp-action="Index">Back to List</a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
