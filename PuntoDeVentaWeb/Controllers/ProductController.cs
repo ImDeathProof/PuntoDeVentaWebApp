@@ -15,68 +15,71 @@ namespace PuntoDeVentaWeb.Controllers
     [Authorize]
     public class ProductController : Controller
     {
-        private readonly DataContext _context;
         private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
+        private readonly IBrandService _brandService;
 
-        public ProductController(DataContext context, IProductService productService)
+        public ProductController(IProductService productService, ICategoryService categoryService, IBrandService brandService)
         {
-            _context = context;
             _productService = productService;
+            _categoryService = categoryService;
+            _brandService = brandService;
         }
         // GET: Product
-        public async Task<IActionResult> Index(string filter)
+        public async Task<IActionResult> Index(int? filterId)
         {
-            ViewData["CurrentFilter"] = filter;
-            var products = _context.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .AsQueryable();
-            switch (filter)
+            try
             {
-                case "LowerStock":
-                    products = products.Where(p => p.Stock <= 10).OrderBy(p => p.Stock);
-                    break;
-                case "HigherStock":
-                    products = products.Where(p => p.Stock > 10).OrderByDescending(p => p.Stock);
-                    break;
-                case "Oldest":
-                    products = products.OrderBy(p => p.Id);
-                    break;
-                case "Latest":
-                    products = products.OrderByDescending(p => p.Id);
-                    break;
-                default:
-                    products = products.OrderBy(p => p.Name);
-                    break;
+                ViewData["CategoryId"] = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name");
+                if (filterId == null)
+                {
+                    return View(await _productService.GetProductsAsync());
+                }
+                var products = await _productService.GetProductsByCategoryAsync(filterId.Value);
+                return View(products);
+
             }
-            return View(await products.ToListAsync());
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while fetching products: " + ex.Message;
+                return View(await _productService.GetProductsAsync());
+            }
         }
 
         // GET: Product/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            var product = await _context.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            try
             {
-                return NotFound();
-            }
+                ViewData["CategoryId"] = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name");
+                if (id == null)
+                {
+                    TempData["ErrorMessage"] = "Product ID is required.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-            return View(product);
+                var product = await _productService.GetProductByIdAsync(id.Value);
+                if (product == null)
+                {
+                    TempData["ErrorMessage"] = "Product not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return View(product);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while fetching product details: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Product/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name");
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name");
+            ViewData["BrandId"] = new SelectList(await _brandService.GetAllBrandsAsync(), "Id", "Name");
+            ViewData["CategoryId"] = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name");
             return View();
         }
 
@@ -87,36 +90,53 @@ namespace PuntoDeVentaWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Description,CategoryId,BrandId,SKU,Stock,Price,Image")] Product product)
         {
-            if (ModelState.IsValid)
+            try
             {
+                ViewData["BrandId"] = new SelectList(await _brandService.GetAllBrandsAsync(), "Id", "Name", product.BrandId);
+                ViewData["CategoryId"] = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name", product.CategoryId);
+
+                if (!ModelState.IsValid)
+                {
+                    TempData["ErrorMessage"] = "Invalid product data.";
+                    return View(product);
+                }
                 product.Price = Math.Round(product.Price, 2); // Ensure price is rounded to 2 decimal places
-                _context.Add(product);
-                await _context.SaveChangesAsync();
+                await _productService.AddProductAsync(product);
                 TempData["SuccessMessage"] = "Product created successfully!";
                 return RedirectToAction(nameof(Index));
             }
-            TempData["ErrorMessage"] = "Could not create product. Please check the details and try again.";
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
-            return View(product);
+            catch(Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while creating the product: " + ex.Message;
+                return View(product);  
+            }
         }
 
         // GET: Product/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            try {
+                if (id == null)
+                {
+                    TempData["ErrorMessage"] = "Product ID is required.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
-            {
-                return NotFound();
+                var product = await _productService.GetProductByIdAsync(id.Value);
+                if (product == null)
+                {
+                    TempData["ErrorMessage"] = "Product not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+                ViewData["BrandId"] = new SelectList(await _brandService.GetAllBrandsAsync(), "Id", "Name", product.BrandId);
+                ViewData["CategoryId"] = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name", product.CategoryId);
+                return View(product);
             }
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
-            return View(product);
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while fetching product for edit: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Product/Edit/5
@@ -126,57 +146,59 @@ namespace PuntoDeVentaWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,CategoryId,BrandId,SKU,Stock,Price,Image")] Product product)
         {
-            if (id != product.Id)
+            try
             {
-                return NotFound();
-            }
+                if (id != product.Id)
+                {
+                    TempData["ErrorMessage"] = "Product ID mismatch.";
+                    return View(product);
+                }
 
-            if (ModelState.IsValid)
-            {
-                try
+                if (!ModelState.IsValid)
                 {
-                    product.Price = Math.Round(product.Price, 2); // Ensure price is rounded to 2 decimal places
-                    _context.Update(product);
-                    await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Product updated successfully!";
+                    TempData["ErrorMessage"] = "Invalid product data.";
+                    ViewData["BrandId"] = new SelectList(await _brandService.GetAllBrandsAsync(), "Id", "Name", product.BrandId);
+                    ViewData["CategoryId"] = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name", product.CategoryId);
+                    return View(product);
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProductExists(product.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+
+                product.Price = Math.Round(product.Price, 2); // Ensure price is rounded to 2 decimal places
+                await _productService.UpdateProductAsync(product);
+                TempData["SuccessMessage"] = "Product updated successfully!";
                 return RedirectToAction(nameof(Index));
             }
-            TempData["ErrorMessage"] = "Could not update product. Please check the details and try again.";
-            ViewData["BrandId"] = new SelectList(_context.Brands, "Id", "Name", product.BrandId);
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", product.CategoryId);
-            return View(product);
+            catch(Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while updating the product: " + ex.Message;
+                ViewData["BrandId"] = new SelectList(await _brandService.GetAllBrandsAsync(), "Id", "Name", product.BrandId);
+                ViewData["CategoryId"] = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name", product.CategoryId);
+                return View(product);
+            }
         }
 
         // GET: Product/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            try {
+                if (id == null)
+                {
+                    TempData["ErrorMessage"] = "Product ID is required.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-            var product = await _context.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
-            {
-                return NotFound();
+                var product = await _productService.GetProductByIdAsync(id.Value);
+                if (product == null)
+                {
+                    TempData["ErrorMessage"] = "Product not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+                return View(product);
             }
-
-            return View(product);
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while fetching product for deletion: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Product/Delete/5
@@ -184,44 +206,28 @@ namespace PuntoDeVentaWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product != null)
+            try
             {
-                try
+                if (id <= 0)
                 {
-
-                    if (_productService.checkIfProductExistsInPurchaseAsync(id) || _productService.checkIfProductExistsInSaleAsync(id))
-                    {
-                        TempData["ErrorMessage"] = "Cannot delete product because it is associated with a purchase or sale.";
-                        return RedirectToAction(nameof(Index));
-                    }
-                    _context.Products.Remove(product);
-                    await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Product deleted successfully!";
+                    TempData["ErrorMessage"] = "Invalid product ID.";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (DBConcurrencyException)
+                var product = await _productService.GetProductByIdAsync(id);
+                if (product == null)
                 {
-                    TempData["ErrorMessage"] = "Could not delete product. Please try again later.";
+                    TempData["ErrorMessage"] = "Product not found.";
                     return RedirectToAction(nameof(Index));
                 }
+                await _productService.DeleteProductAsync(product);
+                TempData["SuccessMessage"] = "Product deleted successfully!";
+                return RedirectToAction(nameof(Index));
             }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool ProductExists(int id)
-        {
-            return _context.Products.Any(e => e.Id == id);
-        }
-        // get product list
-        public List<Product> GetProducts()
-        {
-            return _context.Products.ToList();
-        }
-        public IEnumerable<Product> GetProductList()
-        {
-            return _context.Products.ToList();
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "An error occurred while deleting the product: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

@@ -1,0 +1,50 @@
+@model PuntoDeVentaWeb.Models.SaleDetail;
+@{
+    ViewData["Title"] = "Edit Sale Detail";
+}
+
+<h1>@ViewData["Title"]</h1>
+@{
+    if (TempData["ErrorMessage"] != null) {
+        <div class="alert alert-danger" role="alert">
+            <p>@TempData["ErrorMessage"]</p>
+        </div>
+    }else if (TempData["SuccessMessage"] != null) {
+        <div class="alert alert-success" role="alert">
+            <p>@TempData["SuccessMessage"]</p>
+        </div>
+    }
+}
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Quantity" class="control-label"></label>
+                <input type="number" asp-for="Quantity" class="form-control" />
+                <span asp-validation-for="Quantity" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ProductId" class="control-label"></label>
+                <select asp-for="ProductId" class="form-control" id="product-id-input" asp-items="ViewBag.ProductId"></select>
+                <span asp-validation-for="ProductId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="SaleId" class="control-label"></label>
+                <select asp-for="SaleId" class="form-control" id="sale-id-input" asp-items="ViewBag.SaleId"></select>
+                <span asp-validation-for="SaleId" class="text-danger"></span>
+            </div>
+            <div class="inline-form-group mt-3">
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                    <a class="btn btn-dark" asp-action="Index" asp-route-saleId="@Model.SaleId">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

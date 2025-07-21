@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.Rendering;
 using PuntoDeVentaWeb.Models;
 
 public interface ICategoryRepository
