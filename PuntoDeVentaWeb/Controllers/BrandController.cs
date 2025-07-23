@@ -15,13 +15,13 @@ namespace PuntoDeVentaWeb.Controllers
     
     public class BrandController : Controller
     {
-        private readonly DataContext _context;
+
         private readonly IBrandService _brandService;
 
-        public BrandController(DataContext context, IBrandService brandService)
+        public BrandController(IBrandService brandService)
         {
             _brandService = brandService;
-            _context = context;
+
         }
 
         // GET: Brand
@@ -170,9 +170,5 @@ namespace PuntoDeVentaWeb.Controllers
             }
         }
 
-        private bool BrandExists(int id)
-        {
-            return _context.Brands.Any(e => e.Id == id);
-        }
     }
 }

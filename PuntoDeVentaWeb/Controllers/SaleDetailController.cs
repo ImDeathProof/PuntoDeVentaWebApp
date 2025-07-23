@@ -29,16 +29,17 @@ namespace PuntoDeVentaWeb.Controllers
 
         public async Task<IActionResult> Index(int? saleId)
         {
-            try {
+            try
+            {
                 if (saleId == null)
                 {
                     TempData["ErrorMessage"] = "No details found for the specified sale.";
                     return RedirectToAction("Index", "Sale");
                 }
-                var saleDetails = _saleService.GetSaleDetailsAsync(saleId.Value);
+                var saleDetails = await _saleService.GetSaleDetailsAsync(saleId.Value);
                 ViewData["ProductId"] = await _productService.GetProductSelectListAsync();
                 ViewData["SaleId"] = new SelectList(_context.Sales, "Id", "Description");
-                return View(await saleDetails);
+                return View(saleDetails);
 
             }
             catch (Exception ex)
@@ -186,12 +187,35 @@ namespace PuntoDeVentaWeb.Controllers
                 TempData["SuccessMessage"] = "Sale detail updated successfully.";
                 return RedirectToAction(nameof(Index), new { saleId = saleDetail.SaleId });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while updating sale detail with ID {Id}", id);
                 TempData["ErrorMessage"] = "An error occurred while trying to update the sale detail.";
                 return RedirectToAction(nameof(Index), new { saleId = saleDetail.SaleId });
             }
+        }
+        [HttpPost]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            try
+            {
+                if (id == null)
+                {
+                    TempData["ErrorMessage"] = "Id cannot be null";
+                    return NotFound();
+                }
+                var saleDetail = await _saleService.GetSaleDetailByIdAsync(id.Value);
+                await _saleService.DeleteSaleDetailAsync(saleDetail);
+                TempData["SuccessMessage"] = "Sale detail deleted successfully.";
+                return RedirectToAction(nameof(Index), new { saleId = saleDetail.SaleId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating sale detail with ID {Id}", id);
+                TempData["ErrorMessage"] = "An error occurred while trying to delete the sale detail." + ex;
+                return RedirectToAction(nameof(Index));
+            }
+
         }
     
     }

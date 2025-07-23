@@ -1,5 +1,9 @@
 @model IEnumerable<PuntoDeVentaWeb.Models.SaleDetail>
 
+@{
+    ViewData["Title"] = "Sale Details";
+}
+
 <h1>@ViewData["Title"]</h1>
 
 @{
@@ -51,7 +55,11 @@
                 <td>
                     <a class="btn btn-info" asp-action="Details" asp-route-id="@item.Id"><i class="fa-solid fa-eye"></i></a>
                     <a class="btn btn-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="fa-solid fa-edit"></i></a>
-                    <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="fa-solid fa-trash"></i></a>
+                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
         }

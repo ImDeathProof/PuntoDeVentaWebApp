@@ -11,7 +11,7 @@ namespace PuntoDeVentaWeb.Models
     {
         public int Id { get; set; }
 
-        [Display(Name = "Product Name")]
+        [Display(Name = "Product name")]
         [Required(ErrorMessage = "The product name is required.")]
         public string Name { get; set; }
 
