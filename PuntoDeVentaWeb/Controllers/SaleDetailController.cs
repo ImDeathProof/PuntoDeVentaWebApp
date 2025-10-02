@@ -205,6 +205,14 @@ namespace PuntoDeVentaWeb.Controllers
                     return NotFound();
                 }
                 var saleDetail = await _saleService.GetSaleDetailByIdAsync(id.Value);
+                if(saleDetail == null)
+                {
+                    TempData["ErrorMessage"] = "Sale detail not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+                //restore product stock
+                await _productService.addStockAsync(saleDetail.ProductId, saleDetail.Quantity);
+                //delete sale detail
                 await _saleService.DeleteSaleDetailAsync(saleDetail);
                 TempData["SuccessMessage"] = "Sale detail deleted successfully.";
                 return RedirectToAction(nameof(Index), new { saleId = saleDetail.SaleId });
